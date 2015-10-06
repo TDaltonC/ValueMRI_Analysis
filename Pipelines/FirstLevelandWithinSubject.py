@@ -20,7 +20,7 @@ import nipype.interfaces.utility as util     # utility
 import nipype.pipeline.engine as pe          # pypeline engine
 import nipype.algorithms.modelgen as model   # model generation
 import nipype.algorithms.rapidart as ra      # artifact detection
-import nipype.LooseVersion as LooseVersion   # 
+from nipype import LooseVersion   # 
 # These two lines enable debug mode
 from nipype import config
 config.enable_debug_mode()
@@ -151,17 +151,26 @@ else:
 '''
 CONNECTIONS
 '''
-modelfit.connect([
-   (modelspec,level1design,[('session_info','session_info')]),
-   (level1design,modelgen,[('fsf_files', 'fsf_file'),
-                           ('ev_files', 'ev_files')]),
-   (modelgen,modelestimate,[('design_file','design_file')]),
-   (modelgen,conestimate,[('con_file','tcon_file')]),
-   (modelestimate,conestimate,[('param_estimates','param_estimates'),
-                               ('sigmasquareds', 'sigmasquareds'),
-                               ('corrections','corrections'),
-                               ('dof_file','dof_file')]),
-   ])
+if version < 507:
+    modelfit.connect([
+       (modelspec,level1design,[('session_info','session_info')]),
+       (level1design,modelgen,[('fsf_files', 'fsf_file'),
+                               ('ev_files', 'ev_files')]),
+       (modelgen,modelestimate,[('design_file','design_file')]),
+       (modelgen,conestimate,[('con_file','tcon_file')]),
+       (modelestimate,conestimate,[('param_estimates','param_estimates'),
+                                   ('sigmasquareds', 'sigmasquareds'),
+                                   ('corrections','corrections'),
+                                   ('dof_file','dof_file')]),
+       ])
+else:
+    modelfit.connect([
+       (modelspec,level1design,[('session_info','session_info')]),
+       (level1design,modelgen,[('fsf_files', 'fsf_file'),
+                               ('ev_files', 'ev_files')]),
+       (modelgen,modelestimate,[('design_file','design_file'),
+                                ('con_file','tcon_file')]),
+       ])    
 
 """
 ======================
@@ -214,11 +223,18 @@ withinSubject = pe.Workflow(name='withinSubject')
 """
 CONNECTIONS
 """
-withinSubject.connect([(modelfit, fixed_fx,[(('conestimate.copes', sort_copes),'copemerge.in_files'),
-                                            (('conestimate.varcopes', sort_copes),'varcopemerge.in_files'),
-                                            (('conestimate.copes', num_copes),'l2model.num_copes'),
-                                           ])
-                    ])
+if version < 507:
+    withinSubject.connect([(modelfit, fixed_fx,[(('conestimate.copes', sort_copes),'copemerge.in_files'),
+                                                (('conestimate.varcopes', sort_copes),'varcopemerge.in_files'),
+                                                (('conestimate.copes', num_copes),'l2model.num_copes'),
+                                               ])
+                        ])
+else:
+    withinSubject.connect([(modelfit, fixed_fx,[(('modelestimate.copes', sort_copes),'copemerge.in_files'),
+                                                (('modelestimate.varcopes', sort_copes),'varcopemerge.in_files'),
+                                                (('modelestimate.copes', num_copes),'l2model.num_copes'),
+                                               ])
+                        ])
                     
 """
 =============

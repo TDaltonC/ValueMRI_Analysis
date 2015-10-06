@@ -44,7 +44,8 @@ modelName = "Model_001"
 
 
 # subject directories
-subject_list = ['SID3301', 'SID3303', 'SID3304']
+subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310']
+
 
 # System Setting (Local(MAC) or Remote(linux))
 system = "Darwin" # Mac
@@ -69,7 +70,7 @@ for subjectID in subject_list:
     # Join the data frames
     #join trialbytrial and optionvalue on option number so that trailbytrial now has a column for value
     # Which value model should be used?
-    values1 = optionValues[['MLE-Value']]
+    values1 = optionValues[['MLEValueLBUB']]
     # add the value for the screen option
     values1.columns = ['OptValue']
     trialByTrial = trialByTrial.merge(values1, how = 'left', left_on = 'Opt1Code', right_index = True)
@@ -98,11 +99,11 @@ for subjectID in subject_list:
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         
 #       Name and open the destinations for event files
-        valueDir  =      safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/Run' + str(run) + '/Value.run00'+ str(run) +'.txt')
-        difficultyDir  = safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/Run' + str(run) + '/Difficulty.run00'+ str(run) +'.txt')
-        controlDir  =    safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/Run' + str(run) + '/Control.run00'+ str(run) +'.txt')
-        scalingDir  =    safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/Run' + str(run) + '/Scaling.run00'+ str(run) +'.txt')
-        BundlingDir =    safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/Run' + str(run) + '/Bundling.run00'+ str(run) +'.txt')
+        valueDir  =      safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Value.run00'+ str(run) +'.txt')
+        difficultyDir  = safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Difficulty.run00'+ str(run) +'.txt')
+        controlDir  =    safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Control.run00'+ str(run) +'.txt')
+        scalingDir  =    safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Scaling.run00'+ str(run) +'.txt')
+        BundlingDir =    safe_open_w(data_dir + '/models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Bundling.run00'+ str(run) +'.txt')
 
 #       write each 3-column event file as a tab dilimited csv
         value3Col.to_csv(valueDir, sep ='\t', header = False)

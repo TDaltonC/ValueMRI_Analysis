@@ -27,8 +27,8 @@ fsl.FSLCommand.set_default_output_type('NIFTI_GZ')
 
 
 # System Setting (Local(MAC) or Remote(linux))
-system = "Darwin" # Mac
-# system = "Linux"
+# system = "Darwin" # Mac
+system = "Linux"
 if system == "Darwin":
     data_dir = "/Users/Dalton/Documents/Projects/BundledOptionsExp/Analysis/Data"
     fsl_dir = "/usr/local/fsl"
@@ -64,7 +64,7 @@ mniMask                 = fsl_dir + '/data/standard/MNI152_T1_2mm_brain_mask_dil
 func_scan= [1,2,3,4,5]
 
 # subject directories
-subject_list = ['SID3301', 'SID3303', 'SID3304']
+subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310']
 
 #ModelSettings
 input_units = 'secs'
