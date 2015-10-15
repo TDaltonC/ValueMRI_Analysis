@@ -64,11 +64,13 @@ mniMask                 = fsl_dir + '/data/standard/MNI152_T1_2mm_brain_mask_dil
 func_scan= [1,2,3,4,5]
 
 # subject directories
-subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310']
+# subject_list = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314]
+subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314']
+
 
 #ModelSettings
 input_units = 'secs'
-hpcutoff = 120
+hpcutoff = 120.
 TR = 2.
 
 # ROI Masks

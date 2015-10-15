@@ -13,7 +13,7 @@ So this takes in "dataFromMatLAB.csv" and rank.csv and the outputs "TrialbyTrial
 
 import pandas as pd
 
-subjects = [3301, 3303, 3304, 3306, 3308, 3309, 3310]
+subjects = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314]
 
 def finishingTouches(subjID):
     trialByTrial = pd.read_csv("../../Data/RawData/SID" + str(subjID) + "/MatLabOutput/dataFromMatLAB.csv")

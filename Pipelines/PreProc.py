@@ -196,7 +196,7 @@ intnorm = pe.MapNode(interface=fsl.ImageMaths(suffix='_intnorm'),
 
 #Perform temporal highpass filtering on the data
 highpass = pe.MapNode(interface=fsl.ImageMaths(suffix='_hpf',
-                                               op_string = '-bptf %d -1'%(hpcutoff/TR)),
+                                               op_string = '-bptf %.10f -1'%(hpcutoff/TR)),
                       iterfield=['in_file'],
                       name='highpass')
 
@@ -356,7 +356,12 @@ masterpipeline.connect([(infosource, datasource, [('subject_id', 'subject_id')])
                        # reaches in to a lot of deep places, but it is not of 
                        # those places; hence META.
 masterpipeline.connect([(preproc, datasink,[('func2MNI.out_file','func2MNI.out_file'),
-                                          ('art.outlier_files','art.outlier_files')
+                                          ('art.outlier_files','art.outlier_files'),
+                                          ('motion_correct.par_file','motion_correct.par_file'),
+                                          ('mniFLIRT.out_file','struct_warped_to_MNI'),
+                                          ('meanfunc4.out_file','func_mean_warped_to_MNI'),
+                                          ('intnorm.out_file','mean_normed'),
+                                          ('highpass.out_file','highpass')
                                           ]),
                        ])
 
@@ -369,9 +374,9 @@ Execute the pipeline
 
 if __name__ == '__main__':
     # Plot a network visualization of the pipline
-    masterpipeline.write_graph(graph2use='hierarchical')
-#    preproc.write_graph(graph2use='hierarchical')
-#    modelfit.write_graph(graph2use='exec')
+    # masterpipeline.write_graph(graph2use='hierarchical')
+    # preproc.write_graph(graph2use='hierarchical')
+    # modelfit.write_graph(graph2use='exec')
     # Run the paipline using 1 CPUs
   # outgraph = masterpipeline.run()    
 #     Run the paipline using all CPUs

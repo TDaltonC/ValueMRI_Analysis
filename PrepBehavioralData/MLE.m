@@ -3,7 +3,7 @@ function [ y_output,y_max,p_output,bestValue,bestLL] = MLEmain()
 %this script will call on a log-likelihood fcn called 'MLEequation.m' that
 %will report parameters as variable called 'p_fit'
 
-subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310];
+subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314];
 % dataDir = '/vol';
 dataDir = '~/Documents/Projects/BundledOptionsExp/Analysis/Data';
 % dataDir = '~/Documents/MATLAB/fMRI_fall2015/Dalton';

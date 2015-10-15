@@ -1,4 +1,4 @@
-subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310];
+subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314];
 
 for subjCounter = 1:length(subjIDs)
     % Get to the subjects directory
