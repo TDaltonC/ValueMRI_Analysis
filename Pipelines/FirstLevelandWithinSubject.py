@@ -20,10 +20,10 @@ import nipype.interfaces.utility as util     # utility
 import nipype.pipeline.engine as pe          # pypeline engine
 import nipype.algorithms.modelgen as model   # model generation
 import nipype.algorithms.rapidart as ra      # artifact detection
-from nipype import LooseVersion   # 
+from nipype import LooseVersion              # for simplifying versions
 # These two lines enable debug mode
-from nipype import config
-config.enable_debug_mode()
+# from nipype import config
+# config.enable_debug_mode()
 
 """
 ==============
@@ -312,10 +312,10 @@ Execute the pipeline
 
 if __name__ == '__main__':
     # Plot a network visualization of the pipline
-#    masterpipeline.write_graph(graph2use='hierarchical')
-#    preproc.write_graph(graph2use='hierarchical')
-#    modelfit.write_graph(graph2use='exec')
+    masterpipeline.write_graph(graph2use='hierarchical')
+    # modelfit.write_graph(graph2use='exec')
     # Run the paipline using 1 CPUs
     # outgraph = masterpipeline.run()    
 #     Run the paipline using 8 CPUs
-  outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':7})
+    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':((CPU_Count*2)-1)})
+

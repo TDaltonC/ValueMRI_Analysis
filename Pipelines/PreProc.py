@@ -19,10 +19,11 @@ import nipype.interfaces.fsl as fsl          # fsl
 import nipype.interfaces.utility as util     # utility
 import nipype.pipeline.engine as pe          # pypeline engine
 import nipype.algorithms.rapidart as ra      # artifact detection
+from nipype import LooseVersion              # for simplifying versions
 
 # These two lines enable debug mode
-#from nipype import config
-#config.enable_debug_mode()
+# from nipype import config
+# config.enable_debug_mode()
 
 """
 ==============
@@ -31,6 +32,12 @@ Configurations
 """
 from PipelineConfig import *
 data_dir, preProcDir, ev_dir, withinSubjectResults_dir, betweenSubjectResults_dir, workingdir,crashRecordsDir = configPaths()
+
+# Get the FSL version code
+version = 0
+if fsl.Info.version() and \
+    LooseVersion(fsl.Info.version()) > LooseVersion('5.0.6'):
+    version = 507
 
 """
 =========
@@ -200,6 +207,29 @@ highpass = pe.MapNode(interface=fsl.ImageMaths(suffix='_hpf',
                       iterfield=['in_file'],
                       name='highpass')
 
+  #use the mean of the file that goes in to the highpass as the number to add back in to the highpassed file
+
+if version < 507:
+    print("FSL_5.0.6")
+else:
+    """
+    Add the mean of the image back in to the functional scan becuase the highpass was a bit over zelous and removed the baseline
+    """
+    meanfuncforhighpass = pe.MapNode(interface=fsl.ImageMaths(op_string='-Tmean',
+                                                    suffix='_mean'),
+                           iterfield=['in_file'],
+                           name='meanfuncforhighpass')
+
+    preproc.connect(intnorm, 'out_file', meanfuncforhighpass, 'in_file')
+
+    addmean = pe.MapNode(interface=fsl.BinaryMaths(operation='add'),
+                         iterfield=['in_file', 'operand_file'],
+                         name='addmean')  
+
+    preproc.connect(highpass, 'out_file', addmean, 'in_file')
+    preproc.connect(meanfuncforhighpass, 'out_file', addmean, 'operand_file')
+
+
 #Skull Strip the structural image
 nosestrip = pe.Node(interface=fsl.BET(frac=0.3),
                     name = 'nosestrip')
@@ -295,12 +325,16 @@ preproc.connect([(inputnode, img2float,[('func', 'in_file')]),
                  (skullstrip,mniFLIRT,[('out_file','in_file')]),
                  (mniFLIRT, mniFNIRT, [('out_matrix_file','affine_file')]),
                  (inputnode,mniFNIRT,[('struct','in_file')]),
-                 (highpass,func2MNI,[('out_file','in_file')]),
                  (coregister,func2MNI,[('out_matrix_file','premat')]),
                  (mniFNIRT,func2MNI,[('fieldcoeff_file','field_file')]),
                  (func2MNI, meanfunc4, [('out_file', 'in_file')])
                  ])
                  
+if version < 507:
+    preproc.connect(highpass, 'out_file', func2MNI, 'in_file')
+else:
+    preproc.connect(addmean, 'out_file', func2MNI, 'in_file')
+
 """
 =============
 META workflow
@@ -360,12 +394,14 @@ masterpipeline.connect([(preproc, datasink,[('func2MNI.out_file','func2MNI.out_f
                                           ('motion_correct.par_file','motion_correct.par_file'),
                                           ('mniFLIRT.out_file','struct_warped_to_MNI'),
                                           ('meanfunc4.out_file','func_mean_warped_to_MNI'),
-                                          ('intnorm.out_file','mean_normed'),
-                                          ('highpass.out_file','highpass')
+                                          ('intnorm.out_file','mean_normed')
                                           ]),
                        ])
 
-
+if version < 507:
+    masterpipeline.connect([(preproc, datasink,[('highpass.out_file','highpass')])])
+else:
+    masterpipeline.connect([(preproc, datasink,[('addmean.out_file','highpass')])])
 """
 ====================
 Execute the pipeline
@@ -374,10 +410,10 @@ Execute the pipeline
 
 if __name__ == '__main__':
     # Plot a network visualization of the pipline
-    # masterpipeline.write_graph(graph2use='hierarchical')
+    masterpipeline.write_graph(graph2use='hierarchical')
     # preproc.write_graph(graph2use='hierarchical')
     # modelfit.write_graph(graph2use='exec')
     # Run the paipline using 1 CPUs
-  # outgraph = masterpipeline.run()    
+    # outgraph = masterpipeline.run()    
 #     Run the paipline using all CPUs
     outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':((CPU_Count*2)-1)})

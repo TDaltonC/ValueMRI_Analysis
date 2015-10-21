@@ -171,5 +171,5 @@ masterpipeline.connect([(flameo,MFXdatasink,[('copes','copes'),
         
 if __name__ == '__main__':
 #    masterpipeline.write_graph(graph2use='hierarchical')    
-    masterpipeline.run()
-#    masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':7})
+    # masterpipeline.run()
+    masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':7})
