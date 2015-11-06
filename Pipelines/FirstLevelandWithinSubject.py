@@ -31,7 +31,7 @@ Configurations
 ==============
 """
 #This should be the only thing you have to set
-modelName = "Model_001"
+modelName = "Model_002_LB_DiffOnly"
 
 from PipelineConfig import *
 # Bring in the path names from the configureation file
@@ -198,6 +198,11 @@ level2model = pe.Node(interface=fsl.L2Model(),
 flameo = pe.MapNode(interface=fsl.FLAMEO(run_mode='fe',
                                          mask_file = mniMask), name="flameo",
                     iterfield=['cope_file','var_cope_file'])
+# ROI maskes
+ROIs = pe.MapNode(interface = fsl.ApplyMask(),
+                       name ='ROIs',
+                       iterfield=['in_file'],
+                       iterables = ('mask_file',ROI_Masks))
 
 '''
 Connections
@@ -207,6 +212,7 @@ fixed_fx.connect([(copemerge,flameo,[('merged_file','cope_file')]),
                   (level2model,flameo, [('design_mat','design_file'),
                                         ('design_con','t_con_file'),
                                         ('design_grp','cov_split_file')]),
+                  (flameo, ROIs, [('tstats', 'in_file')]),
                   ])
 
 
@@ -236,6 +242,7 @@ else:
                                                ])
                         ])
                     
+
 """
 =============
 META workflow
@@ -289,7 +296,7 @@ masterpipeline.connect([(infosource, datasource, [('subject_id', 'subject_id')])
                     (datasource, withinSubject, [('func', 'modelfit.modelspec.functional_runs'),
                                                  ('func', 'modelfit.modelestimate.in_file'),
                                                  ('art', 'modelfit.modelspec.outlier_files'),
-                                              ]),
+                                                ]),
                     (infosource, datasink, [('subject_id', 'container')])
                     ])
                     
@@ -300,7 +307,9 @@ withinSubject.connect([(modelfit,datasink,[('modelestimate.param_estimates','reg
                        (modelfit,datasink,[('level1design.fsf_files', 'fsf_file')]),
                        (fixed_fx,datasink,[('flameo.tstats','tstats'),
                                           ('flameo.copes','copes'),
-                                          ('flameo.var_copes','varcopes')]),
+                                          ('flameo.var_copes','varcopes'),
+                                          ]),
+                       (ROIs, datasink,[('out_file','ROIs')])
                        ])
 
 
@@ -317,5 +326,6 @@ if __name__ == '__main__':
     # Run the paipline using 1 CPUs
     # outgraph = masterpipeline.run()    
 #     Run the paipline using 8 CPUs
-    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':((CPU_Count*2)-1)})
+    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': 20})
+
 

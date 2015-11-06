@@ -40,7 +40,7 @@ CONFIGURATION
 =============
 """ 
 # Model name (make sure the model names in 'code' and 'data' match!)
-modelName = "Model_001_Rank"
+modelName = "Model_001_Rank_Offset_Split"
 
 
 # subject directories
@@ -84,6 +84,9 @@ for subjectID in subject_list:
     # Add a column of ones to the dataframe (this is usefull for creating the three column files)        
     trialByTrial['ones'] = 1
     
+    #Create the offset value vector
+    trialByTrial['OptValueOff'] = trialByTrial['OptValue'] - trialByTrial['FixedValue']
+
     # Create the diff column
     # subtract the control option value from the value vector to make a vector for diff
     trialByTrial['OptValueDiff'] = abs(trialByTrial['OptValue'] - trialByTrial['FixedValue'])
@@ -95,28 +98,28 @@ for subjectID in subject_list:
 #       make the event files for each run seperately.  
 #       make the three column format eventfile [onsetTime, Durration, Magnitude]
             # to remove nans, test if a number equals itself
-        value3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.Run  == run)][['ReactionTime','OptValue']]
-        difficulty3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.Run  == run)][['ReactionTime','OptValueDiff']]
+        posValue3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.OptValueOff > 0) & (trialByTrial.Run  == run)][['ReactionTime','OptValueOff']]
+        negValue3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.OptValueOff < 0) & (trialByTrial.Run  == run)][['ReactionTime','OptValueOff']]
         control3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         scaling3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         
 #       Name and open the destinations for event files
-        valueDir  =      safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Value.run00'+ str(run) +'.txt')
-        difficultyDir  = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Difficulty.run00'+ str(run) +'.txt')
+        posValueDir  =   safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/PosValue.run00'+ str(run) +'.txt')
+        negValueDir  =   safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/NegValue.run00'+ str(run) +'.txt')
         controlDir  =    safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Control.run00'+ str(run) +'.txt')
         scalingDir  =    safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Scaling.run00'+ str(run) +'.txt')
         BundlingDir =    safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Bundling.run00'+ str(run) +'.txt')
 
 #       write each 3-column event file as a tab dilimited csv
-        value3Col.to_csv(valueDir, sep ='\t', header = False)
-        difficulty3Col.to_csv(difficultyDir, sep ='\t', header = False)
+        posValue3Col.to_csv(posValueDir, sep ='\t', header = False)
+        negValue3Col.to_csv(negValueDir, sep ='\t', header = False)
         control3Col.to_csv(controlDir, sep ='\t', header = False)
         scaling3Col.to_csv(scalingDir, sep ='\t', header = False)
         bundling3Col.to_csv(BundlingDir, sep ='\t', header = False)
 #       Be Tidy! Close all of those open files! 
-        valueDir.close()
-        difficultyDir.close()
+        posValueDir.close()
+        negValueDir.close()
         controlDir.close()
         scalingDir.close()
         BundlingDir.close()

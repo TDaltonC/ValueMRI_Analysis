@@ -65,6 +65,7 @@ func_scan= [1,2,3,4,5]
 
 # subject directories
 subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314']
+# subject_list = ['SID3301', 'SID3303', 'SID3306', 'SID3309', 'SID3312', 'SID3313', 'SID3314']
 # subject_list = ['SID3312']
 
 
@@ -90,6 +91,13 @@ ROI_Masks = [data_dir + '/ROIs/HOMiddleFrontalGyrus.nii.gz',
              data_dir + '/ROIs/rPCG.nii.gz',
              data_dir + '/ROIs/rpITG.nii.gz',
              data_dir + '/ROIs/rSFG.nii.gz',
-             data_dir + '/ROIs/vmPFC.nii.gz']
+             data_dir + '/ROIs/vmPFC.nii.gz',
+             data_dir + '/ROIs/R-dAI.nii',
+             data_dir + '/ROIs/R-PI.nii',
+             data_dir + '/ROIs/R-vAI.nii',
+             data_dir + '/ROIs/L-dAI.nii',
+             data_dir + '/ROIs/L-PI.nii',
+             data_dir + '/ROIs/L-vAI.nii'
+             ]
 
 

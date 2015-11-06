@@ -28,7 +28,7 @@ Configurations
 """
 
 #This should be the only thing you have to set
-modelName = "Model_001"
+modelName = "Model_002_LB_DiffOnly"
 
 from PipelineConfig import *
 # Bring in the path names from the configureation file
@@ -130,6 +130,10 @@ thresholdNegative = pe.MapNode(interface=fsl.Threshold(thresh = -1.645,
                      name = 'thresholdNegative',
                      iterfield=['in_file'])
                      
+thresholdCombined = pe.MapNode(interface=fsl.BinaryMaths(operation = 'add'),
+                               name = 'thresholdCombined',
+                               iterfield=['in_file', 'operand_file'])
+
 ROIs = pe.MapNode(interface = fsl.ApplyMask(),
                        name ='ROIs',
                        iterfield=['in_file'],
@@ -157,6 +161,8 @@ masterpipeline.connect([(copemerge,flameo,[('merged_file','cope_file')]),
                         
 masterpipeline.connect([(flameo,thresholdPositive,[('zstats','in_file')]),
                         (flameo,thresholdNegative,[('zstats','in_file')]),
+                        (thresholdPositive,thresholdCombined,[('out_file','in_file')]),
+                        (thresholdNegative,thresholdCombined,[('out_file','operand_file')]),
                         (flameo,ROIs,[('zstats','in_file')])])
 
 masterpipeline.connect([(flameo,MFXdatasink,[('copes','copes'),
@@ -166,10 +172,12 @@ masterpipeline.connect([(flameo,MFXdatasink,[('copes','copes'),
                                              ]),
                          (thresholdPositive,MFXdatasink,[('out_file','thresholdedPositive')]),
                          (thresholdNegative,MFXdatasink,[('out_file','thresholdedNegative')]),
+                         (thresholdCombined,MFXdatasink,[('out_file','thresholdedCombined')]),
                          (ROIs,MFXdatasink,[('out_file','ROIs')])
                          ])
         
 if __name__ == '__main__':
 #    masterpipeline.write_graph(graph2use='hierarchical')    
     # masterpipeline.run()
-    masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':7})
+    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':20})
+

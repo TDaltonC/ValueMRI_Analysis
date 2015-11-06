@@ -40,7 +40,7 @@ CONFIGURATION
 =============
 """ 
 # Model name (make sure the model names in 'code' and 'data' match!)
-modelName = "Model_001_Rank"
+modelName = "Model_001_LB"
 
 
 # subject directories
@@ -69,11 +69,10 @@ for subjectID in subject_list:
     optionValues = pandas.DataFrame.from_csv(data_dir + '/RawData/' + subjectID + '/DataFrames/optionValue.csv')
     optionValues.reset_index(inplace=True)
     optionValues.set_index('rank', drop=False, inplace=True)
-    optionValues['rankValue'] = max(optionValues['rank']) - optionValues['rank'] + 1
     # Join the data frames
     #join trialbytrial and optionvalue on option number so that trailbytrial now has a column for value
     # Which value model should be used?
-    values1 = optionValues[['rankValue']]
+    values1 = optionValues[['MLEValueLB']]
     # add the value for the screen option
     values1.columns = ['OptValue']
     trialByTrial = trialByTrial.merge(values1, how = 'left', left_on = 'Opt1Code', right_index = True)

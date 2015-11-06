@@ -394,7 +394,7 @@ masterpipeline.connect([(preproc, datasink,[('func2MNI.out_file','func2MNI.out_f
                                           ('motion_correct.par_file','motion_correct.par_file'),
                                           ('mniFLIRT.out_file','struct_warped_to_MNI'),
                                           ('meanfunc4.out_file','func_mean_warped_to_MNI'),
-                                          ('intnorm.out_file','mean_normed')
+                                          # ('intnorm.out_file','mean_normed'),
                                           ]),
                        ])
 
@@ -411,9 +411,10 @@ Execute the pipeline
 if __name__ == '__main__':
     # Plot a network visualization of the pipline
     masterpipeline.write_graph(graph2use='hierarchical')
+    masterpipeline.write_graph(graph2use='exec')
     # preproc.write_graph(graph2use='hierarchical')
     # modelfit.write_graph(graph2use='exec')
     # Run the paipline using 1 CPUs
     # outgraph = masterpipeline.run()    
 #     Run the paipline using all CPUs
-    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':((CPU_Count*2)-1)})
+    # outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':((CPU_Count*2)-1)})

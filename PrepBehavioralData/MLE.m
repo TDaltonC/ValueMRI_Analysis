@@ -4,6 +4,7 @@ function [ y_output,y_max,p_output,bestValue,bestLL] = MLEmain()
 %will report parameters as variable called 'p_fit'
 
 subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314];
+% subjIDs = [3306];
 % dataDir = '/vol';
 dataDir = '~/Documents/Projects/BundledOptionsExp/Analysis/Data';
 % dataDir = '~/Documents/MATLAB/fMRI_fall2015/Dalton';
@@ -15,7 +16,6 @@ for subjCounter = 1:length(subjIDs)
     disp(currentSubj)
     cd(strcat(dataDir, '/RawData/SID', num2str(currentSubj), '/DataFrames'));
     % Import all of the choices
-    % load('choices.mat');
     trialByTrial = readtable(strcat('trialByTrial.csv'));
     ExplicitChoices = trialByTrial(trialByTrial.Choice>0,{'Opt1Code','Opt2Code','Choice'});
     choices = table2array(ExplicitChoices);
@@ -96,8 +96,8 @@ for subjCounter = 1:length(subjIDs)
         end
     end
     
-    options = optimset('Algorithm','interior-point');
-    %options.MaxFunEvals = 10000;
+    options = optimset('Algorithm','sqp');
+    options.MaxFunEvals = 50000;
     
     %% MLE Models
     
@@ -107,7 +107,7 @@ for subjCounter = 1:length(subjIDs)
     sumValuesMatrix = ones(1,optCount);
     sumValues = 0;
     
-    p_initial(1:optCount,1) = 0.1; % initial values for all options
+    p_initial(1:optCount,1) = linspace(1,-1,optCount); % initial values for all options
     [p_fitLBUBS,y_valLBUBS] = fmincon(@(p) MLEequation(p, x), p_initial,[],[],sumValuesMatrix,sumValues,limit_lower,limit_upper,[],options);
     %     p_outputLBUBS = join(p_fitLBUBS,sortedOptionsRenamed(:,1),'key','Key1','Type','outer',...
     %    'MergeKeys',true);
@@ -127,8 +127,8 @@ for subjCounter = 1:length(subjIDs)
     clear p
     
     % LB, UB, no sum restriction
-    limit_lower = zeros(1,optCount);
-    limit_upper = ones(1,optCount);
+    limit_lower = -ones(1,optCount);
+    limit_upper =  ones(1,optCount);
     
     p_initial(1:optCount,1) = 0.1; % initial values for all options
     [p_fitLBUB, y_valLBUB] = fmincon(@(p) MLEequation(p, x), p_initial,[],[],[],[],limit_lower,limit_upper,[],options);
@@ -172,7 +172,7 @@ for subjCounter = 1:length(subjIDs)
     clear p
     
     % no LB, UB, no sum restriction
-    limit_upper = 100*ones(1,optCount);
+    limit_upper = ones(1,optCount);
     
     p_initial(1:optCount,1) = 0.1; % initial values for all options
     [p_fitUB, y_valUB] = fmincon(@(p) MLEequation(p, x), p_initial,[],[],[],[],[],limit_upper,[],options);

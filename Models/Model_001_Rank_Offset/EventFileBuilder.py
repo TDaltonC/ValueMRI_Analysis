@@ -40,15 +40,16 @@ CONFIGURATION
 =============
 """ 
 # Model name (make sure the model names in 'code' and 'data' match!)
-modelName = "Model_001"
+modelName = "Model_001_Rank_Offset"
 
 
 # subject directories
 subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314']
+# subject_list = ['SID3308']
 
 
 # System Setting (Local(MAC) or Remote(linux))
-# system = "Darwin" # Mac
+#system = "Darwin" # Mac
 system = "Linux"
 if system == "Darwin":
     data_dir = "/Users/Dalton/Documents/Projects/BundledOptionsExp/Analysis/Data"
@@ -66,11 +67,13 @@ for subjectID in subject_list:
 #   load the trial by trial data for this subject
     trialByTrial = pandas.DataFrame.from_csv(data_dir + '/RawData/' + subjectID + '/DataFrames/trialByTrial.csv', index_col = 'OnsetTime')
     optionValues = pandas.DataFrame.from_csv(data_dir + '/RawData/' + subjectID + '/DataFrames/optionValue.csv')
-
+    optionValues.reset_index(inplace=True)
+    optionValues.set_index('rank', drop=False, inplace=True)
+    optionValues['rankValue'] = max(optionValues['rank']) - optionValues['rank'] + 1
     # Join the data frames
     #join trialbytrial and optionvalue on option number so that trailbytrial now has a column for value
     # Which value model should be used?
-    values1 = optionValues[['MLEValueLBUB']]
+    values1 = optionValues[['rankValue']]
     # add the value for the screen option
     values1.columns = ['OptValue']
     trialByTrial = trialByTrial.merge(values1, how = 'left', left_on = 'Opt1Code', right_index = True)
@@ -81,6 +84,9 @@ for subjectID in subject_list:
     # Add a column of ones to the dataframe (this is usefull for creating the three column files)        
     trialByTrial['ones'] = 1
     
+    #Create the offset value vector
+    trialByTrial['OptValueOff'] = trialByTrial['OptValue'] - trialByTrial['FixedValue']
+
     # Create the diff column
     # subtract the control option value from the value vector to make a vector for diff
     trialByTrial['OptValueDiff'] = abs(trialByTrial['OptValue'] - trialByTrial['FixedValue'])
@@ -92,7 +98,7 @@ for subjectID in subject_list:
 #       make the event files for each run seperately.  
 #       make the three column format eventfile [onsetTime, Durration, Magnitude]
             # to remove nans, test if a number equals itself
-        value3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.Run  == run)][['ReactionTime','OptValue']]
+        value3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.Run  == run)][['ReactionTime','OptValueOff']]
         difficulty3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.Run  == run)][['ReactionTime','OptValueDiff']]
         control3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         scaling3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run)][['ReactionTime','ones']]

@@ -1,4 +1,5 @@
-subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314];
+% subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314];
+subjIDs = [9998, 9999];
 
 for subjCounter = 1:length(subjIDs)
     % Get to the subjects directory
@@ -89,11 +90,21 @@ for subjCounter = 1:length(subjIDs)
             
 %           Encode the choices
             choices = behavioral.key;
+            switchLR = settings.switchLR;
             for choice = 1:length(choices)
                 if choices(choice) == 'f'
-                    finalChoices(choice) = 1;
+                    if switchLR(choice) == 0
+                        finalChoices(choice) = 1;
+                    elseif switchLR(choice) == 1
+                        finalChoices(choice) = 2;
+                    end
+                    
                 elseif choices(choice) == 'j'
-                    finalChoices(choice) = 2;
+                    if switchLR(choice) == 0
+                        finalChoices(choice) = 2;
+                    elseif switchLR(choice) == 1
+                        finalChoices(choice) = 1;
+                    end   
                 else
                     finalChoices(choice) = -1;
                 end
