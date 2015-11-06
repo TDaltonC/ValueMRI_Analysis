@@ -11,7 +11,6 @@ Imports
 =========
 """
 import os                                    # system functions
-
 import nipype.interfaces.fsl as fsl          # fsl
 
 """
@@ -38,20 +37,31 @@ elif system == "Linux":
     fsl_dir = "/usr/share/fsl/5.0"
     CPU_Count = 16
 
-# Paths
-def configPaths(modelName = "PreProcessing",data_dir = data_dir):
+data_dir  = "/vol/"
+preproc_folder = "PreProcessed/"
+models_folder = "Models/"  
 
-    # Wthere the input data comes from
-    preProcDir =               data_dir + "/PreProcessed"
-    ev_dir     =               data_dir + "/Models/" + modelName + "/EventFiles"
-    # Where the outputs goes
-    withinSubjectResults_dir = data_dir + "/Models/" + modelName + "/FFX_Results"
-    betweenSubjectResults_dir= data_dir + "/Models/" + modelName + "/MFX_Results"
-    # Working Directory
-    workingdir =               data_dir + "/WorkingDir/" + modelName
-    # Crash Records
-    crashRecordsDir =          workingdir + "/crashdumps"
-    return data_dir, preProcDir, ev_dir, withinSubjectResults_dir, betweenSubjectResults_dir, workingdir,crashRecordsDir
+event_file_folder = "EventFiles/"
+within_subj_results_folder = "FFX_Results/"
+between_subj_results_folder = "MFX_Results/"
+
+working_folder = "WorkingDir/"
+crash_report_folder = "crashdumps/"
+
+# # Paths
+# def configPaths(modelName = "PreProcessing",data_dir = data_dir):
+
+#     # Wthere the input data comes from
+#     preProcDir =               data_dir + "/PreProcessed"
+#     ev_dir     =               data_dir + "/Models/" + modelName + "/EventFiles"
+#     # Where the outputs goes
+#     withinSubjectResults_dir = data_dir + "/Models/" + modelName + "/FFX_Results"
+#     betweenSubjectResults_dir= data_dir + "/Models/" + modelName + "/MFX_Results"
+#     # Working Directory
+#     workingdir =               data_dir + "/WorkingDir/" + modelName
+#     # Crash Records
+#     crashRecordsDir =          workingdir + "/crashdumps"
+#     return data_dir, preProcDir, ev_dir, withinSubjectResults_dir, betweenSubjectResults_dir, workingdir,crashRecordsDir
     
 
 # Templates
@@ -92,12 +102,12 @@ ROI_Masks = [data_dir + '/ROIs/HOMiddleFrontalGyrus.nii.gz',
              data_dir + '/ROIs/rpITG.nii.gz',
              data_dir + '/ROIs/rSFG.nii.gz',
              data_dir + '/ROIs/vmPFC.nii.gz',
-             data_dir + '/ROIs/R-dAI.nii',
-             data_dir + '/ROIs/R-PI.nii',
-             data_dir + '/ROIs/R-vAI.nii',
-             data_dir + '/ROIs/L-dAI.nii',
-             data_dir + '/ROIs/L-PI.nii',
-             data_dir + '/ROIs/L-vAI.nii'
+             # data_dir + '/ROIs/R-dAI.nii',
+             # data_dir + '/ROIs/R-PI.nii',
+             # data_dir + '/ROIs/R-vAI.nii',
+             # data_dir + '/ROIs/L-dAI.nii',
+             # data_dir + '/ROIs/L-PI.nii',
+             # data_dir + '/ROIs/L-vAI.nii'
              ]
 
 

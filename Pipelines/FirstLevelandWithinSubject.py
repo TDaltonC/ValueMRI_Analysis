@@ -21,6 +21,7 @@ import nipype.pipeline.engine as pe          # pypeline engine
 import nipype.algorithms.modelgen as model   # model generation
 import nipype.algorithms.rapidart as ra      # artifact detection
 from nipype import LooseVersion              # for simplifying versions
+import PipelineConfig as PC
 # These two lines enable debug mode
 # from nipype import config
 # config.enable_debug_mode()
@@ -32,13 +33,16 @@ Configurations
 """
 #This should be the only thing you have to set
 modelName = "Model_002_LB_DiffOnly"
+model_folder = modelName + "/"
 
-from PipelineConfig import *
 # Bring in the path names from the configureation file
-data_dir, preProcDir, ev_dir, withinSubjectResults_dir, betweenSubjectResults_dir, workingdir,crashRecordsDir = configPaths(modelName)
+withinSubjectResults_dir = PC.data_dir + PC.models_folder  + model_folder + within_subj_results_folder
+betweenSubjectResults_dir= PC.data_dir + PC.models_folder  + model_folder + between_subj_results_folder
+workingdir               = PC.data_dir + PC.working_folder + model_folder
+crashRecordsDir          = workingdir  + crash_report_folder
 
 sys.path.append("../Models/" + modelName)
-from Contrasts import *
+from Contrasts import contrasts
 
 # Get the FSL version code
 version = 0
@@ -196,7 +200,7 @@ level2model = pe.Node(interface=fsl.L2Model(),
 
 #estimate a second level model
 flameo = pe.MapNode(interface=fsl.FLAMEO(run_mode='fe',
-                                         mask_file = mniMask), name="flameo",
+                                         mask_file = PC.mniMask), name="flameo",
                     iterfield=['cope_file','var_cope_file'])
 # ROI maskes
 ROIs = pe.MapNode(interface = fsl.ApplyMask(),
@@ -261,7 +265,7 @@ infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
 infosource.iterables = ('subject_id', subject_list)
 
 # The datagrabber finds all of the files that need to be run and makes sure that
-# they get to the right nodes at the benining of the protocol.
+# they get to the right nodes at the begining of the protocol.
 datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
                                                outfields=['func', 'art','evs']),
                      name = 'datasource')
@@ -313,6 +317,7 @@ withinSubject.connect([(modelfit,datasink,[('modelestimate.param_estimates','reg
                        ])
 
 
+
 """
 ====================
 Execute the pipeline
@@ -324,8 +329,8 @@ if __name__ == '__main__':
     masterpipeline.write_graph(graph2use='hierarchical')
     # modelfit.write_graph(graph2use='exec')
     # Run the paipline using 1 CPUs
-    # outgraph = masterpipeline.run()    
+    outgraph = masterpipeline.run()    
 #     Run the paipline using 8 CPUs
-    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': 20})
+    # outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': 20})
 
 
