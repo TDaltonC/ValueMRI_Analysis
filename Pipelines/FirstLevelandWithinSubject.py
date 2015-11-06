@@ -22,8 +22,8 @@ import nipype.algorithms.modelgen as model   # model generation
 import nipype.algorithms.rapidart as ra      # artifact detection
 from nipype import LooseVersion              # for simplifying versions
 # These two lines enable debug mode
-# from nipype import config
-# config.enable_debug_mode()
+from nipype import config
+config.enable_debug_mode()
 
 """
 ==============
@@ -31,7 +31,7 @@ Configurations
 ==============
 """
 #This should be the only thing you have to set
-modelName = "Model_002_LB_DiffOnly"
+modelName = "Model_002_LB"
 
 from PipelineConfig import *
 # Bring in the path names from the configureation file
@@ -326,6 +326,6 @@ if __name__ == '__main__':
     # Run the paipline using 1 CPUs
     # outgraph = masterpipeline.run()    
 #     Run the paipline using 8 CPUs
-    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': 20})
+    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': 10})
 
 

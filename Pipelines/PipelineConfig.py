@@ -92,12 +92,12 @@ ROI_Masks = [data_dir + '/ROIs/HOMiddleFrontalGyrus.nii.gz',
              data_dir + '/ROIs/rpITG.nii.gz',
              data_dir + '/ROIs/rSFG.nii.gz',
              data_dir + '/ROIs/vmPFC.nii.gz',
-             data_dir + '/ROIs/R-dAI.nii',
-             data_dir + '/ROIs/R-PI.nii',
-             data_dir + '/ROIs/R-vAI.nii',
-             data_dir + '/ROIs/L-dAI.nii',
-             data_dir + '/ROIs/L-PI.nii',
-             data_dir + '/ROIs/L-vAI.nii'
+             # data_dir + '/ROIs/R-dAI.nii',
+             # data_dir + '/ROIs/R-PI.nii',
+             # data_dir + '/ROIs/R-vAI.nii',
+             # data_dir + '/ROIs/L-dAI.nii',
+             # data_dir + '/ROIs/L-PI.nii',
+             # data_dir + '/ROIs/L-vAI.nii'
              ]
 
 
