@@ -33,11 +33,10 @@ if system == "Darwin":
     fsl_dir = "/usr/local/fsl"
     CPU_Count = 2
 elif system == "Linux":
-    data_dir = "/vol"
+    data_dir = "/data/"
     fsl_dir = "/usr/share/fsl/5.0"
-    CPU_Count = 16
+    CPU_Count = 20
 
-data_dir  = "/vol/"
 preproc_folder = "PreProcessed/"
 models_folder = "Models/"  
 
@@ -48,21 +47,6 @@ between_subj_results_folder = "MFX_Results/"
 working_folder = "WorkingDir/"
 crash_report_folder = "crashdumps/"
 
-# # Paths
-# def configPaths(modelName = "PreProcessing",data_dir = data_dir):
-
-#     # Wthere the input data comes from
-#     preProcDir =               data_dir + "/PreProcessed"
-#     ev_dir     =               data_dir + "/Models/" + modelName + "/EventFiles"
-#     # Where the outputs goes
-#     withinSubjectResults_dir = data_dir + "/Models/" + modelName + "/FFX_Results"
-#     betweenSubjectResults_dir= data_dir + "/Models/" + modelName + "/MFX_Results"
-#     # Working Directory
-#     workingdir =               data_dir + "/WorkingDir/" + modelName
-#     # Crash Records
-#     crashRecordsDir =          workingdir + "/crashdumps"
-#     return data_dir, preProcDir, ev_dir, withinSubjectResults_dir, betweenSubjectResults_dir, workingdir,crashRecordsDir
-    
 
 # Templates
 mfxTemplateBrain        = fsl_dir + '/data/standard/MNI152_T1_2mm.nii.gz'
