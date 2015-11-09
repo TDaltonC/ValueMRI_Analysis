@@ -47,6 +47,7 @@ between_subj_results_folder = "MFX_Results/"
 working_folder = "WorkingDir/"
 crash_report_folder = "crashdumps/"
 
+models = ["Model_002_LB"]
 
 # Templates
 mfxTemplateBrain        = fsl_dir + '/data/standard/MNI152_T1_2mm.nii.gz'
@@ -58,9 +59,9 @@ mniMask                 = fsl_dir + '/data/standard/MNI152_T1_2mm_brain_mask_dil
 func_scan= [1,2,3,4,5]
 
 # subject directories
-subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314']
+# subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314']
 # subject_list = ['SID3301', 'SID3303', 'SID3306', 'SID3309', 'SID3312', 'SID3313', 'SID3314']
-# subject_list = ['SID3312']
+subject_list = ['SID3312', 'SID3313']
 
 
 #ModelSettings

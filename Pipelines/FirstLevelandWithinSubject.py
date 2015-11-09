@@ -70,7 +70,7 @@ def getthreshop(thresh):
 #functions to get the brightness threshold for SUSAN
 def getbtthresh(medianvals):
     return [0.75*val for val in medianvals]
-    
+
 def getusans(x):
     return [[tuple([val[0],0.75*val[1]])] for val in x]
 
@@ -83,264 +83,253 @@ def sort_copes(files):
         for j, elements in enumerate(files):
             outfiles[i].append(elements[i])
     return outfiles
-    
+
 def num_copes(files):
     return len(files)
 
+# within_subj_results_folder = PC.within_subj_results_folder
+def within_subj_Dir(model_name):
+    withinSubjectResults_dir = '/data/Models/' + model_name + "/FFX_Results/"
+    return withinSubjectResults_dir
+
+"""
+======================
+Configure  Directories
+======================
+"""
+
+model_name = PC.models[0]
+
+model_folder = model_name + "/"
+
+# Bring in the path names from the configureation file
+data_dir                 = PC.data_dir
+# withinSubjectResults_dir = PC.data_dir + PC.models_folder  + model_folder + PC.within_subj_results_folder
+# betweenSubjectResults_dir= PC.data_dir + PC.models_folder  + model_folder + PC.between_subj_results_folder
+workingdir               = PC.data_dir + PC.working_folder + model_folder
+crashRecordsDir          = workingdir  + PC.crash_report_folder
+
+sys.path.append("../Models/" + model_folder)
+from Contrasts import contrasts
 
 
 """
-=========================
-  The Pipeline Function
-=========================
+======================
+model fitting workflow
+======================
+
+NODES
 """
+#Master Node
+modelfit = pe.Workflow(name='modelfit')
+
+#generate design information
+modelspec = pe.Node(interface=model.SpecifyModel(input_units = PC.input_units,
+                                                 time_repetition = PC.TR,
+                                                 high_pass_filter_cutoff = PC.hpcutoff),
+                    name="modelspec")
+
+#generate a run specific fsf file for analysis
+level1design = pe.Node(interface=fsl.Level1Design(interscan_interval = PC.TR,
+                                                  bases = {'dgamma':{'derivs': False}},
+                                                  contrasts = contrasts,
+                                                  model_serial_correlations = True),
+                       name="level1design")
+
+#generate a run specific mat file for use by FILMGLS
+modelgen = pe.MapNode(interface=fsl.FEATModel(), name='modelgen',
+                      iterfield = ['fsf_file', 'ev_files'])
 
 
-def FLWS(modelName = "Model_002_LB_DiffOnly"):
+if version < 507:
+    #estomate Model
+    modelestimate = pe.MapNode(interface=fsl.FILMGLS(smooth_autocorr=True,
+                                                     mask_size=5,
+                                                     threshold=1000),
+                                                     name='modelestimate',
+                                                     iterfield = ['design_file',
+                                                                  'in_file'])
 
-    """
-    ======================
-    Configure  Directories
-    ======================
-    """
+    #estimate contrasts
+    conestimate = pe.MapNode(interface=fsl.ContrastMgr(), name='conestimate',
+                             iterfield = ['tcon_file','param_estimates',
+                                          'sigmasquareds', 'corrections',
+                                          'dof_file'])
+else:
+    #estomate Model and Contrasts
+    modelestimate = pe.MapNode(interface=fsl.FILMGLS(smooth_autocorr=True,
+                                                     mask_size=5,
+                                                     threshold=1000),
+                                                     name='modelestimate',
+                                                     iterfield = ['design_file',
+                                                                  'in_file',
+                                                                  'tcon_file'])
 
-    model_folder = modelName + "/"
+'''
+CONNECTIONS
+'''
+if version < 507:
+    modelfit.connect([
+       (modelspec,level1design,[('session_info','session_info')]),
+       (level1design,modelgen,[('fsf_files', 'fsf_file'),
+                               ('ev_files', 'ev_files')]),
+       (modelgen,modelestimate,[('design_file','design_file')]),
+       (modelgen,conestimate,[('con_file','tcon_file')]),
+       (modelestimate,conestimate,[('param_estimates','param_estimates'),
+                                   ('sigmasquareds', 'sigmasquareds'),
+                                   ('corrections','corrections'),
+                                   ('dof_file','dof_file')]),
+       ])
+else:
+    modelfit.connect([
+       (modelspec,level1design,[('session_info','session_info')]),
+       (level1design,modelgen,[('fsf_files', 'fsf_file'),
+                               ('ev_files', 'ev_files')]),
+       (modelgen,modelestimate,[('design_file','design_file'),
+                                ('con_file','tcon_file')]),
+       ])    
 
-    # Bring in the path names from the configureation file
-    data_dir                 = PC.data_dir
-    withinSubjectResults_dir = PC.data_dir + PC.models_folder  + model_folder + PC.within_subj_results_folder
-    betweenSubjectResults_dir= PC.data_dir + PC.models_folder  + model_folder + PC.between_subj_results_folder
-    workingdir               = PC.data_dir + PC.working_folder + model_folder
-    crashRecordsDir          = workingdir  + PC.crash_report_folder
+"""
+======================
+fixed-effects workflow
+======================
 
-    sys.path.append("../Models/" + model_folder)
-    from Contrasts import contrasts
+NODES
+"""
+# Master Node
+fixed_fx = pe.Workflow(name='fixedfx')
 
+#merge the copes and varcopes for each condition
+copemerge    = pe.MapNode(interface=fsl.Merge(dimension='t'),
+                          iterfield=['in_files'],
+                          name="copemerge")
+varcopemerge = pe.MapNode(interface=fsl.Merge(dimension='t'),
+                       iterfield=['in_files'],
+                       name="varcopemerge")
 
-    """
-    ======================
-    model fitting workflow
-    ======================
+#level 2 model design files (there's one for each condition of each subject)
+level2model = pe.Node(interface=fsl.L2Model(),
+                      name='l2model')
 
-    NODES
-    """
-    #Master Node
-    modelfit = pe.Workflow(name='modelfit')
+#estimate a second level model
+flameo = pe.MapNode(interface=fsl.FLAMEO(run_mode='fe',
+                                         mask_file = PC.mniMask), name="flameo",
+                    iterfield=['cope_file','var_cope_file'])
+# ROI maskes
+ROIs = pe.MapNode(interface = fsl.ApplyMask(),
+                       name ='ROIs',
+                       iterfield=['in_file'],
+                       iterables = ('mask_file',PC.ROI_Masks))
 
-    #generate design information
-    modelspec = pe.Node(interface=model.SpecifyModel(input_units = PC.input_units,
-                                                     time_repetition = PC.TR,
-                                                     high_pass_filter_cutoff = PC.hpcutoff),
-                        name="modelspec")
-
-    #generate a run specific fsf file for analysis
-    level1design = pe.Node(interface=fsl.Level1Design(interscan_interval = PC.TR,
-                                                      bases = {'dgamma':{'derivs': False}},
-                                                      contrasts = contrasts,
-                                                      model_serial_correlations = True),
-                           name="level1design")
-
-    #generate a run specific mat file for use by FILMGLS
-    modelgen = pe.MapNode(interface=fsl.FEATModel(), name='modelgen',
-                          iterfield = ['fsf_file', 'ev_files'])
-
-
-    if version < 507:
-        #estomate Model
-        modelestimate = pe.MapNode(interface=fsl.FILMGLS(smooth_autocorr=True,
-                                                         mask_size=5,
-                                                         threshold=1000),
-                                                         name='modelestimate',
-                                                         iterfield = ['design_file',
-                                                                      'in_file'])
-
-        #estimate contrasts
-        conestimate = pe.MapNode(interface=fsl.ContrastMgr(), name='conestimate',
-                                 iterfield = ['tcon_file','param_estimates',
-                                              'sigmasquareds', 'corrections',
-                                              'dof_file'])
-    else:
-        #estomate Model and Contrasts
-        modelestimate = pe.MapNode(interface=fsl.FILMGLS(smooth_autocorr=True,
-                                                         mask_size=5,
-                                                         threshold=1000),
-                                                         name='modelestimate',
-                                                         iterfield = ['design_file',
-                                                                      'in_file',
-                                                                      'tcon_file'])
-
-    '''
-    CONNECTIONS
-    '''
-    if version < 507:
-        modelfit.connect([
-           (modelspec,level1design,[('session_info','session_info')]),
-           (level1design,modelgen,[('fsf_files', 'fsf_file'),
-                                   ('ev_files', 'ev_files')]),
-           (modelgen,modelestimate,[('design_file','design_file')]),
-           (modelgen,conestimate,[('con_file','tcon_file')]),
-           (modelestimate,conestimate,[('param_estimates','param_estimates'),
-                                       ('sigmasquareds', 'sigmasquareds'),
-                                       ('corrections','corrections'),
-                                       ('dof_file','dof_file')]),
-           ])
-    else:
-        modelfit.connect([
-           (modelspec,level1design,[('session_info','session_info')]),
-           (level1design,modelgen,[('fsf_files', 'fsf_file'),
-                                   ('ev_files', 'ev_files')]),
-           (modelgen,modelestimate,[('design_file','design_file'),
-                                    ('con_file','tcon_file')]),
-           ])    
-
-    """
-    ======================
-    fixed-effects workflow
-    ======================
-
-    NODES
-    """
-    # Master Node
-    fixed_fx = pe.Workflow(name='fixedfx')
-
-    #merge the copes and varcopes for each condition
-    copemerge    = pe.MapNode(interface=fsl.Merge(dimension='t'),
-                              iterfield=['in_files'],
-                              name="copemerge")
-    varcopemerge = pe.MapNode(interface=fsl.Merge(dimension='t'),
-                           iterfield=['in_files'],
-                           name="varcopemerge")
-
-    #level 2 model design files (there's one for each condition of each subject)
-    level2model = pe.Node(interface=fsl.L2Model(),
-                          name='l2model')
-
-    #estimate a second level model
-    flameo = pe.MapNode(interface=fsl.FLAMEO(run_mode='fe',
-                                             mask_file = PC.mniMask), name="flameo",
-                        iterfield=['cope_file','var_cope_file'])
-    # ROI maskes
-    ROIs = pe.MapNode(interface = fsl.ApplyMask(),
-                           name ='ROIs',
-                           iterfield=['in_file'],
-                           iterables = ('mask_file',PC.ROI_Masks))
-
-    '''
-    Connections
-    '''
-    fixed_fx.connect([(copemerge,flameo,[('merged_file','cope_file')]),
-                      (varcopemerge,flameo,[('merged_file','var_cope_file')]),
-                      (level2model,flameo, [('design_mat','design_file'),
-                                            ('design_con','t_con_file'),
-                                            ('design_grp','cov_split_file')]),
-                      (flameo, ROIs, [('tstats', 'in_file')]),
-                      ])
+'''
+Connections
+'''
+fixed_fx.connect([(copemerge,flameo,[('merged_file','cope_file')]),
+                  (varcopemerge,flameo,[('merged_file','var_cope_file')]),
+                  (level2model,flameo, [('design_mat','design_file'),
+                                        ('design_con','t_con_file'),
+                                        ('design_grp','cov_split_file')]),
+                  (flameo, ROIs, [('tstats', 'in_file')]),
+                  ])
 
 
-    """
-    =======================
-    Within-Subject workflow
-    =======================
+"""
+=======================
+Within-Subject workflow
+=======================
 
-    NODES
-    """
-    #Master NODE
-    withinSubject = pe.Workflow(name='withinSubject')
+NODES
+"""
+#Master NODE
+withinSubject = pe.Workflow(name='withinSubject')
 
-    """
-    CONNECTIONS
-    """
-    if version < 507:
-        withinSubject.connect([(modelfit, fixed_fx,[(('conestimate.copes', sort_copes),'copemerge.in_files'),
-                                                    (('conestimate.varcopes', sort_copes),'varcopemerge.in_files'),
-                                                    (('conestimate.copes', num_copes),'l2model.num_copes'),
-                                                   ])
-                            ])
-    else:
-        withinSubject.connect([(modelfit, fixed_fx,[(('modelestimate.copes', sort_copes),'copemerge.in_files'),
-                                                    (('modelestimate.varcopes', sort_copes),'varcopemerge.in_files'),
-                                                    (('modelestimate.copes', num_copes),'l2model.num_copes'),
-                                                   ])
-                            ])
-                        
-
-    """
-    =============
-    META workflow
-    =============
-
-    NODES
-    """
-    # Master NODE
-    masterpipeline = pe.Workflow(name= "MasterWorkfow")
-    masterpipeline.base_dir = workingdir + '/FFX'
-    masterpipeline.config = {"execution": {"crashdump_dir":crashRecordsDir}}
-
-    # Set up inforsource to iterate over 'subject_id's
-    infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
-                         name="infosource")
-    infosource.iterables = ('subject_id', PC.subject_list)
-
-    # The datagrabber finds all of the files that need to be run and makes sure that
-    # they get to the right nodes at the begining of the protocol.
-    datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                                   outfields=['func', 'art','evs']),
-                         name = 'datasource')
-    datasource.inputs.base_directory = data_dir
-    datasource.inputs.template = '*'
-    datasource.inputs.field_template= dict(func=  'PreProcessed/%s/func2MNI/out_file/_subject_id_%s/*/*.nii*',
-                                           art =  'PreProcessed/%s/art/outlier_files/_subject_id_%s/*/*.txt',
-                                           evs =  'Models/' + modelName + '/EventFiles/%s/RUN%d/*.txt')
-    datasource.inputs.template_args = dict(func=  [['subject_id','subject_id']],
-                                           art =  [['subject_id','subject_id']],
-                                           evs =  [['subject_id', PC.func_scan]])
-    datasource.inputs.sort_filelist = True
-
-
-
-    #DataSink  --- stores important outputs
-    datasink = pe.Node(interface=nio.DataSink(base_directory= withinSubjectResults_dir,
-                                              parameterization = True # This line keeps the DataSink from adding an aditional level to the directory, I have no Idea why this works.
-                                              
-                                              ),
-                       name="datasink")
-    datasink.inputs.substitutions = [('_subject_id_', ''),
-                                     ('_flameo', 'contrast')]
-
-
-    """
-    CONNECTIONS
-    """
-
-    masterpipeline.connect([(infosource, datasource, [('subject_id', 'subject_id')]),
-                        (datasource, withinSubject, [('evs', 'modelfit.modelspec.event_files')]),
-                        (datasource, withinSubject, [('func', 'modelfit.modelspec.functional_runs'),
-                                                     ('func', 'modelfit.modelestimate.in_file'),
-                                                     ('art', 'modelfit.modelspec.outlier_files'),
-                                                    ]),
-                        (infosource, datasink, [('subject_id', 'container')])
+"""
+CONNECTIONS
+"""
+if version < 507:
+    withinSubject.connect([(modelfit, fixed_fx,[(('conestimate.copes', sort_copes),'copemerge.in_files'),
+                                                (('conestimate.varcopes', sort_copes),'varcopemerge.in_files'),
+                                                (('conestimate.copes', num_copes),'l2model.num_copes'),
+                                               ])
                         ])
-                        
-    #DataSink Connections -- These are put with the meta flow becuase the dataSink 
-                           # reaches in to a lot of deep places, but it is not of 
-                           # those places; hence META.
-    withinSubject.connect([(modelfit,datasink,[('modelestimate.param_estimates','regressorEstimates')]),
-                           (modelfit,datasink,[('level1design.fsf_files', 'fsf_file')]),
-                           (fixed_fx,datasink,[('flameo.tstats','tstats'),
-                                              ('flameo.copes','copes'),
-                                              ('flameo.var_copes','varcopes'),
-                                              ]),
-                           (ROIs, datasink,[('out_file','ROIs')])
-                           ])
+else:
+    withinSubject.connect([(modelfit, fixed_fx,[(('modelestimate.copes', sort_copes),'copemerge.in_files'),
+                                                (('modelestimate.varcopes', sort_copes),'varcopemerge.in_files'),
+                                                (('modelestimate.copes', num_copes),'l2model.num_copes'),
+                                               ])
+                        ])
+                    
 
-    # Plot a network visualization of the pipline
-    masterpipeline.write_graph(graph2use='hierarchical')
-    # modelfit.write_graph(graph2use='exec')
+"""
+=============
+META workflow
+=============
 
-    # Run the paipline using 1 CPUs
-    # outgraph = masterpipeline.run()    
-    # Run the paipline using multi-Core
-    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': PC.CPU_Count})
+NODES
+"""
+# Master NODE
+masterpipeline = pe.Workflow(name= "MasterWorkfow")
+masterpipeline.base_dir = workingdir + '/FFX'
+masterpipeline.config = {"execution": {"crashdump_dir":crashRecordsDir}}
+
+# Set up inforsource to iterate over 'subject_id's
+modle_subj_source = pe.Node(interface=util.IdentityInterface(fields=['model_name', 'subject_id']),
+                     name="modle_subj_source")
+modle_subj_source.iterables = [('subject_id', PC.subject_list),
+                               ('model_name', PC.models)]
+
+# The datagrabber finds all of the files that need to be run and makes sure that
+# they get to the right nodes at the begining of the protocol.
+datasource = pe.Node(interface=nio.DataGrabber(infields=['model_name', 'subject_id'],
+                                               outfields=['func', 'art', 'evs']),
+                     name = 'datasource')
+datasource.inputs.base_directory = data_dir
+datasource.inputs.template = '*'
+datasource.inputs.field_template= dict(func=  'PreProcessed/%s/func2MNI/out_file/_subject_id_%s/*/*.nii*',
+                                       art =  'PreProcessed/%s/art/outlier_files/_subject_id_%s/*/*.txt',
+                                       evs =  'Models/%s/EventFiles/%s/RUN%d/*.txt'
+                                       )
+datasource.inputs.template_args = dict(func=  [['subject_id','subject_id']],
+                                       art =  [['subject_id','subject_id']],
+                                       evs =  [['model_name', 'subject_id', PC.func_scan]])
+datasource.inputs.sort_filelist = True
+
+
+
+#DataSink  --- stores important outputs
+datasink = pe.Node(interface=nio.DataSink(parameterization = True), # This line keeps the DataSink from adding an aditional level to the directory, I have no Idea why this works.                   
+                      name="datasink")
+datasink.inputs.substitutions = [('_subject_id_', ''),
+                                 ('_flameo', 'contrast')]
+
+
+"""
+CONNECTIONS
+"""
+
+masterpipeline.connect([(modle_subj_source, datasource, [('subject_id', 'subject_id'),
+                                                         ('model_name', 'model_name')]),
+                    (datasource, withinSubject, [('evs', 'modelfit.modelspec.event_files')]),
+                    (datasource, withinSubject, [('func', 'modelfit.modelspec.functional_runs'),
+                                                 ('func', 'modelfit.modelestimate.in_file'),
+                                                 ('art', 'modelfit.modelspec.outlier_files'),
+                                                ]),
+                    (modle_subj_source, datasink, [('subject_id', 'container'),
+                                                   (('model_name', within_subj_Dir),'base_directory')])
+                    (modle_subj_source, datasink,
+                    ])
+                    
+#DataSink Connections -- These are put with the meta flow becuase the dataSink 
+                       # reaches in to a lot of deep places, but it is not of 
+                       # those places; hence META.
+withinSubject.connect([(modelfit,datasink,[('modelestimate.param_estimates','regressorEstimates')]),
+                       (modelfit,datasink,[('level1design.fsf_files', 'fsf_file')]),
+                       (fixed_fx,datasink,[('flameo.tstats','tstats'),
+                                          ('flameo.copes','copes'),
+                                          ('flameo.var_copes','varcopes'),
+                                          ]),
+                       (ROIs, datasink,[('out_file','ROIs')])
+                       ])
 
 
 """
@@ -350,6 +339,14 @@ Execute the pipeline
 """
 
 if __name__ == '__main__':
-  FLWS()
+    # Plot a network visualization of the pipline
+    masterpipeline.write_graph(graph2use='hierarchical')
+    # modelfit.write_graph(graph2use='exec')
+
+    # Run the paipline using 1 CPUs
+    # outgraph = masterpipeline.run()    
+    # Run the paipline using multi-Core
+    outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': PC.CPU_Count})
+
 
 
