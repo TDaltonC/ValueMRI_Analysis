@@ -14,6 +14,7 @@ import os
 import errno
 import pandas
 import numpy as np
+import seaborn as sb
 import json
 import Contrasts
 
@@ -42,7 +43,7 @@ CONFIGURATION
 =============
 """ 
 # Model name (make sure the model names in 'code' and 'data' match!)
-modelName = "Model_002_Rank_Offset"
+modelName = "Model_002_S_RT"
 
 
 # subject directories
@@ -70,11 +71,10 @@ for subjectID in subject_list:
     optionValues = pandas.DataFrame.from_csv(data_dir + '/RawData/' + subjectID + '/DataFrames/optionValue.csv')
     optionValues.reset_index(inplace=True)
     optionValues.set_index('rank', drop=False, inplace=True)
-    optionValues['rankValue'] = max(optionValues['rank']) - optionValues['rank'] + 1
     # Join the data frames
     #join trialbytrial and optionvalue on option number so that trailbytrial now has a column for value
     # Which value model should be used?
-    values1 = optionValues[['rank']]
+    values1 = optionValues[['MLEValueS']]
     # add the value for the screen option
     values1.columns = ['OptValue']
     trialByTrial = trialByTrial.merge(values1, how = 'left', left_on = 'Opt1Code', right_index = True)
@@ -85,13 +85,12 @@ for subjectID in subject_list:
     # Add a column of ones to the dataframe (this is usefull for creating the three column files)        
     trialByTrial['ones'] = 1
     
-
-    #Create the offset value vector
-    trialByTrial['OptValueOff'] = trialByTrial['OptValue'] - trialByTrial['FixedValue']
-
     # Create the diff column
     # subtract the control option value from the value vector to make a vector for diff
     trialByTrial['OptValueDiff'] = abs(trialByTrial['OptValue'] - trialByTrial['FixedValue'])
+
+#    sb.regplot("OptValue", "OptValueDiff", trialByTrial[trialByTrial["Run"]!=0], label= subjectID)
+    trialByTrial[trialByTrial["Run"]!=0].plot(kind ="scatter", x = "OptValue", y = "OptValueDiff")
 
 #%% make the event files for each run
     print(subjectID)
@@ -101,57 +100,70 @@ for subjectID in subject_list:
 #       make the three column format eventfile [onsetTime, Durration, Magnitude]
             # to remove nans, test if a number equals itself
         control3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
-        controlValue3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueOff']]
+        controlValue3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         controlDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
+        controlReactionTime3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','ReactionTime']]
         
         scaling3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
-        scalingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueOff']]
+        scalingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         scalingDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
+        scalingReactionTime3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','ReactionTime']]
         
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
-        bundlingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueOff']]
+        bundlingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         bundlingDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
+        bundlingReactionTime3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','ReactionTime']]
         
 #       Name and open the destinations for event files
         controlDir            = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Control.run00'+ str(run) +'.txt')
         controlValueDir       = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/ControlValue.run00'+ str(run) +'.txt')
-        controlDifficultyDir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/ControlDifficulty.run00'+ str(run) +'.txt')
+        controlDifficultyDir  = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/ControlDifficulty.run00'+ str(run) +'.txt')
+        controlReactionTimeDir= safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/ControlReactionTime.run00'+ str(run) +'.txt')
 
         scalingDir            = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Scaling.run00'+ str(run) +'.txt')
         scalingValueDir       = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/ScalingValue.run00'+ str(run) +'.txt')
         scalingDifficultyDir  = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/ScalingDifficulty.run00'+ str(run) +'.txt')
+        scalingReactionTimeDir= safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/ScalingReactionTime.run00'+ str(run) +'.txt')
 
-        bundlingDir           = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Bundling.run00'+ str(run) +'.txt')
-        bundlingValueDir      = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/BundlingValue.run00'+ str(run) +'.txt')
-        bundlingDifficultyDir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/BundlingDifficulty.run00'+ str(run) +'.txt')
+        bundlingDir            = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Bundling.run00'+ str(run) +'.txt')
+        bundlingValueDir       = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/BundlingValue.run00'+ str(run) +'.txt')
+        bundlingDifficultyDir  = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/BundlingDifficulty.run00'+ str(run) +'.txt')
+        bundlingReactionTimeDir= safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/BundlingReactionTime.run00'+ str(run) +'.txt')
 
 #       write each 3-column event file as a tab dilimited csv
         control3Col.to_csv(controlDir, sep ='\t', header = False)
         controlValue3Col.to_csv(controlValueDir, sep ='\t', header = False)
         controlDifficulty3Col.to_csv(controlDifficultyDir, sep ='\t', header = False)
-
+        controlReactionTime3Col.to_csv(controlReactionTimeDir, sep ='\t', header = False)
+        
         scaling3Col.to_csv(scalingDir, sep ='\t', header = False)
         scalingValue3Col.to_csv(scalingValueDir, sep ='\t', header = False)
         scalingDifficulty3Col.to_csv(scalingDifficultyDir, sep ='\t', header = False)
+        scalingReactionTime3Col.to_csv(scalingReactionTimeDir, sep ='\t', header = False)
 
         bundling3Col.to_csv(bundlingDir, sep ='\t', header = False)
         bundlingValue3Col.to_csv(bundlingValueDir, sep ='\t', header = False)
         bundlingDifficulty3Col.to_csv(bundlingDifficultyDir, sep ='\t', header = False)
+        bundlingReactionTime3Col.to_csv(bundlingReactionTimeDir, sep ='\t', header = False)
 #       Be Tidy! Close all of those open files! 
         controlDir.close()
         controlValueDir.close()
         controlDifficultyDir.close()
+        controlReactionTimeDir.close()
 
         scalingDir.close()
         scalingValueDir.close()
         scalingDifficultyDir.close()
+        scalingReactionTimeDir.close()
 
         bundlingDir.close()
         bundlingValueDir.close()
         bundlingDifficultyDir.close()
+        bundlingReactionTimeDir.close()
 
 
 contrasts_dir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/contrasts.json')
-Contrasts.contrasts
+
 json.dump(Contrasts.contrasts, contrasts_dir)
 contrasts_dir.close()
+

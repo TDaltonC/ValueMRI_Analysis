@@ -15,6 +15,9 @@ import errno
 import pandas
 import numpy as np
 import seaborn as sb
+import json
+import Contrasts
+
 """
 =========
 Functions
@@ -145,3 +148,10 @@ for subjectID in subject_list:
         bundlingDir.close()
         bundlingValueDir.close()
         bundlingDifficultyDir.close()
+
+
+contrasts_dir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/contrasts.json')
+
+json.dump(Contrasts.contrasts, contrasts_dir)
+contrasts_dir.close()
+

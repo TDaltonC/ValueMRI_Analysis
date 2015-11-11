@@ -21,10 +21,11 @@ import nipype.pipeline.engine as pe          # pypeline engine
 import nipype.algorithms.modelgen as model   # model generation
 import nipype.algorithms.rapidart as ra      # artifact detection
 from nipype import LooseVersion              # for simplifying versions
+import json
 import PipelineConfig as PC
 # These two lines enable debug mode
-# from nipype import config
-# config.enable_debug_mode()
+from nipype import config
+config.enable_debug_mode()
 
 """
 ==============
@@ -87,14 +88,19 @@ def sort_copes(files):
 def num_copes(files):
     return len(files)
 
-# within_subj_results_folder = PC.within_subj_results_folder
 def within_subj_Dir(model_name):
     withinSubjectResults_dir = '/data/Models/' + model_name + "/FFX_Results/"
     return withinSubjectResults_dir
 
+def contrast_decode(cont_file):
+  import json
+  cont_string = open(cont_file)
+  cont = json.load(cont_string)
+  return cont
+
 """
 ======================
-Configure  Directories
+Configure  Directoriess
 ======================
 """
 
@@ -104,13 +110,11 @@ model_folder = model_name + "/"
 
 # Bring in the path names from the configureation file
 data_dir                 = PC.data_dir
-# withinSubjectResults_dir = PC.data_dir + PC.models_folder  + model_folder + PC.within_subj_results_folder
-# betweenSubjectResults_dir= PC.data_dir + PC.models_folder  + model_folder + PC.between_subj_results_folder
-workingdir               = PC.data_dir + PC.working_folder + model_folder
+workingdir               = PC.data_dir + PC.working_folder
 crashRecordsDir          = workingdir  + PC.crash_report_folder
 
-sys.path.append("../Models/" + model_folder)
-from Contrasts import contrasts
+
+# from Contrasts import contrasts
 
 
 """
@@ -132,7 +136,7 @@ modelspec = pe.Node(interface=model.SpecifyModel(input_units = PC.input_units,
 #generate a run specific fsf file for analysis
 level1design = pe.Node(interface=fsl.Level1Design(interscan_interval = PC.TR,
                                                   bases = {'dgamma':{'derivs': False}},
-                                                  contrasts = contrasts,
+                                                  # contrasts = contrasts,
                                                   model_serial_correlations = True),
                        name="level1design")
 
@@ -281,17 +285,19 @@ modle_subj_source.iterables = [('subject_id', PC.subject_list),
 # The datagrabber finds all of the files that need to be run and makes sure that
 # they get to the right nodes at the begining of the protocol.
 datasource = pe.Node(interface=nio.DataGrabber(infields=['model_name', 'subject_id'],
-                                               outfields=['func', 'art', 'evs']),
+                                               outfields=['func', 'art', 'evs', 'cont']),
                      name = 'datasource')
 datasource.inputs.base_directory = data_dir
 datasource.inputs.template = '*'
 datasource.inputs.field_template= dict(func=  'PreProcessed/%s/func2MNI/out_file/_subject_id_%s/*/*.nii*',
                                        art =  'PreProcessed/%s/art/outlier_files/_subject_id_%s/*/*.txt',
-                                       evs =  'Models/%s/EventFiles/%s/RUN%d/*.txt'
+                                       evs =  'Models/%s/EventFiles/%s/RUN%d/*.txt',
+                                       cont=  'Models/%s/EventFiles/contrasts.json'
                                        )
-datasource.inputs.template_args = dict(func=  [['subject_id','subject_id']],
-                                       art =  [['subject_id','subject_id']],
-                                       evs =  [['model_name', 'subject_id', PC.func_scan]])
+datasource.inputs.template_args = dict(func=  [['subject_id', 'subject_id']],
+                                       art =  [['subject_id', 'subject_id']],
+                                       evs =  [['model_name', 'subject_id', PC.func_scan]],
+                                       cont=  [['model_name']])
 datasource.inputs.sort_filelist = True
 
 
@@ -309,16 +315,18 @@ CONNECTIONS
 
 masterpipeline.connect([(modle_subj_source, datasource, [('subject_id', 'subject_id'),
                                                          ('model_name', 'model_name')]),
-                    (datasource, withinSubject, [('evs', 'modelfit.modelspec.event_files')]),
-                    (datasource, withinSubject, [('func', 'modelfit.modelspec.functional_runs'),
+                    (datasource, withinSubject, [('evs',  'modelfit.modelspec.event_files'),
+                                                 ('func', 'modelfit.modelspec.functional_runs'),
                                                  ('func', 'modelfit.modelestimate.in_file'),
-                                                 ('art', 'modelfit.modelspec.outlier_files'),
+                                                 ('art',  'modelfit.modelspec.outlier_files'),
+                                                 (('cont', contrast_decode), 'modelfit.level1design.contrasts')
                                                 ]),
                     (modle_subj_source, datasink, [('subject_id', 'container'),
-                                                   (('model_name', within_subj_Dir),'base_directory')])
-                    (modle_subj_source, datasink,
+                                                   (('model_name', within_subj_Dir),'base_directory')]),
+                    # (modle_subj_source, masterpipeline, [(('model_name', working_Dir),'base_dir'),
+                    #                                      (('model_name', crash_Dir),'config')])
                     ])
-                    
+
 #DataSink Connections -- These are put with the meta flow becuase the dataSink 
                        # reaches in to a lot of deep places, but it is not of 
                        # those places; hence META.

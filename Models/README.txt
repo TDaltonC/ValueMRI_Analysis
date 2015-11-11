@@ -12,8 +12,14 @@ _LBUB : These models use a MLE value estmate model that assumes the *Lower Bound
 
 _LB : These models use a MLE value estmate model that assumes the *Lower Bound* of value is 0
 
+_MLERank : Rank by MLE value 
+
+_S : These use a value MLE value model that is only bound by sum 
+
 _Rank : These models use the rank as a proxy for value.
 
 _Offset : These models set the vale of the control option to 0 so that options more valuable than the control item have positive value and options that are less valuable than the control item have negative value. 
 
 _Split : These models have seperate regressors for [options with positive value] and [options with negative value].
+
+_RT : There is a parametric regressor for reaction time.

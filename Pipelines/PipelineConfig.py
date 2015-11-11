@@ -38,7 +38,7 @@ elif system == "Linux":
     CPU_Count = 20
 
 preproc_folder = "PreProcessed/"
-models_folder = "Models/"  
+models_folder = "Models/"
 
 event_file_folder = "EventFiles/"
 within_subj_results_folder = "FFX_Results/"
@@ -47,7 +47,27 @@ between_subj_results_folder = "MFX_Results/"
 working_folder = "WorkingDir/"
 crash_report_folder = "crashdumps/"
 
-models = ["Model_002_LB"]
+models = ["Model_001_LB",
+          "Model_001_LBUB",
+          "Model_001_MLERank",
+          "Model_001_Rank",
+          "Model_001_Rank_Offset",
+          "Model_001_Rank_Offset_Split",
+          "Model_001_S",
+          "Model_001_S_RT",
+          "Model_002_LB",
+          "Model_002_LB_DiffOnly",
+          "Model_002_LB_ValueOnly",
+          "Model_002_LBUB",
+          "Model_002_MLERank",
+          "Model_002_Rank",
+          "Model_002_Rank_Offset",
+          "Model_002_Rank_Offset_Split",
+          "Model_002_S",
+          "Model_002_S_RT",
+          "Model_003_LB",
+          "Model_004_LB"
+          ]
 
 # Templates
 mfxTemplateBrain        = fsl_dir + '/data/standard/MNI152_T1_2mm.nii.gz'
@@ -87,6 +107,7 @@ ROI_Masks = [data_dir + '/ROIs/HOMiddleFrontalGyrus.nii.gz',
              data_dir + '/ROIs/rpITG.nii.gz',
              data_dir + '/ROIs/rSFG.nii.gz',
              data_dir + '/ROIs/vmPFC.nii.gz',
+             data_dir + '/ROIs/vmPFC_big.nii.gz',
              # data_dir + '/ROIs/R-dAI.nii',
              # data_dir + '/ROIs/R-PI.nii',
              # data_dir + '/ROIs/R-vAI.nii',

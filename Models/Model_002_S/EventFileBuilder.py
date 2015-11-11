@@ -14,6 +14,7 @@ import os
 import errno
 import pandas
 import numpy as np
+import seaborn as sb
 import json
 import Contrasts
 
@@ -42,7 +43,7 @@ CONFIGURATION
 =============
 """ 
 # Model name (make sure the model names in 'code' and 'data' match!)
-modelName = "Model_002_Rank_Offset"
+modelName = "Model_002_S"
 
 
 # subject directories
@@ -70,11 +71,10 @@ for subjectID in subject_list:
     optionValues = pandas.DataFrame.from_csv(data_dir + '/RawData/' + subjectID + '/DataFrames/optionValue.csv')
     optionValues.reset_index(inplace=True)
     optionValues.set_index('rank', drop=False, inplace=True)
-    optionValues['rankValue'] = max(optionValues['rank']) - optionValues['rank'] + 1
     # Join the data frames
     #join trialbytrial and optionvalue on option number so that trailbytrial now has a column for value
     # Which value model should be used?
-    values1 = optionValues[['rank']]
+    values1 = optionValues[['MLEValueS']]
     # add the value for the screen option
     values1.columns = ['OptValue']
     trialByTrial = trialByTrial.merge(values1, how = 'left', left_on = 'Opt1Code', right_index = True)
@@ -85,13 +85,12 @@ for subjectID in subject_list:
     # Add a column of ones to the dataframe (this is usefull for creating the three column files)        
     trialByTrial['ones'] = 1
     
-
-    #Create the offset value vector
-    trialByTrial['OptValueOff'] = trialByTrial['OptValue'] - trialByTrial['FixedValue']
-
     # Create the diff column
     # subtract the control option value from the value vector to make a vector for diff
     trialByTrial['OptValueDiff'] = abs(trialByTrial['OptValue'] - trialByTrial['FixedValue'])
+
+#    sb.regplot("OptValue", "OptValueDiff", trialByTrial[trialByTrial["Run"]!=0], label= subjectID)
+    trialByTrial[trialByTrial["Run"]!=0].plot(kind ="scatter", x = "OptValue", y = "OptValueDiff")
 
 #%% make the event files for each run
     print(subjectID)
@@ -101,15 +100,15 @@ for subjectID in subject_list:
 #       make the three column format eventfile [onsetTime, Durration, Magnitude]
             # to remove nans, test if a number equals itself
         control3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
-        controlValue3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueOff']]
+        controlValue3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         controlDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
         
         scaling3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
-        scalingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueOff']]
+        scalingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         scalingDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
         
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
-        bundlingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueOff']]
+        bundlingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         bundlingDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
         
 #       Name and open the destinations for event files
@@ -152,6 +151,7 @@ for subjectID in subject_list:
 
 
 contrasts_dir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/contrasts.json')
-Contrasts.contrasts
+
 json.dump(Contrasts.contrasts, contrasts_dir)
 contrasts_dir.close()
+

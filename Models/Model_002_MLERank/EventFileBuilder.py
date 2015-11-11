@@ -15,6 +15,8 @@ import errno
 import pandas
 import numpy as np
 import seaborn as sb
+import json
+import Contrasts
 
 """
 =========
@@ -49,13 +51,13 @@ subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309'
 
 
 # System Setting (Local(MAC) or Remote(linux))
-system = "Darwin" # Mac
-#system = "Linux"
+# system = "Darwin" # Mac
+system = "Linux"
 if system == "Darwin":
     data_dir = "/Users/Dalton/Documents/Projects/BundledOptionsExp/Analysis/Data"
     fsl_dir = "/usr/local/fsl"
 elif system == "Linux":
-    data_dir = "/vol"
+    data_dir = "/data"
     fsl_dir = "/usr/share/fsl/5.0"
 
 """
@@ -72,7 +74,7 @@ for subjectID in subject_list:
     # Join the data frames
     #join trialbytrial and optionvalue on option number so that trailbytrial now has a column for value
     # Which value model should be used?
-    optionValues.sort('MLEValueLB', inplace = True, ascending = False)
+    optionValues.sort('MLEValueS', inplace = True, ascending = False)
     optionValues['MLE_Rank'] = np.linspace(1, -1, optionValues.shape[0])
     values1 = optionValues[['MLE_Rank']]
     # add the value for the screen option
@@ -90,7 +92,7 @@ for subjectID in subject_list:
     trialByTrial['OptValueDiff'] = abs(trialByTrial['OptValue'] - trialByTrial['FixedValue'])
 
 #    sb.regplot("MLE_Rank", "MLEValueLB", optionValues, label= subjectID, lowess = True)
-    sb.regplot("OptValue", "OptValueDiff", trialByTrial[trialByTrial["Run"]!=0], label= subjectID)
+    # sb.regplot("OptValue", "OptValueDiff", trialByTrial[trialByTrial["Run"]!=0], label= subjectID)
 
 #%% make the event files for each run
     print(subjectID)
@@ -148,3 +150,9 @@ for subjectID in subject_list:
         bundlingDir.close()
         bundlingValueDir.close()
         bundlingDifficultyDir.close()
+
+
+contrasts_dir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/contrasts.json')
+Contrasts.contrasts
+json.dump(Contrasts.contrasts, contrasts_dir)
+contrasts_dir.close()

@@ -42,7 +42,7 @@ CONFIGURATION
 =============
 """ 
 # Model name (make sure the model names in 'code' and 'data' match!)
-modelName = "Model_001_Rank_Offset_Split"
+modelName = "Model_001_S"
 
 
 # subject directories
@@ -51,7 +51,7 @@ subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309'
 
 
 # System Setting (Local(MAC) or Remote(linux))
-#system = "Darwin" # Mac
+# system = "Darwin" # Mac 
 system = "Linux"
 if system == "Darwin":
     data_dir = "/Users/Dalton/Documents/Projects/BundledOptionsExp/Analysis/Data"
@@ -71,11 +71,10 @@ for subjectID in subject_list:
     optionValues = pandas.DataFrame.from_csv(data_dir + '/RawData/' + subjectID + '/DataFrames/optionValue.csv')
     optionValues.reset_index(inplace=True)
     optionValues.set_index('rank', drop=False, inplace=True)
-    optionValues['rankValue'] = max(optionValues['rank']) - optionValues['rank'] + 1
     # Join the data frames
     #join trialbytrial and optionvalue on option number so that trailbytrial now has a column for value
     # Which value model should be used?
-    values1 = optionValues[['rankValue']]
+    values1 = optionValues[['MLEValueS']]
     # add the value for the screen option
     values1.columns = ['OptValue']
     trialByTrial = trialByTrial.merge(values1, how = 'left', left_on = 'Opt1Code', right_index = True)
@@ -86,9 +85,6 @@ for subjectID in subject_list:
     # Add a column of ones to the dataframe (this is usefull for creating the three column files)        
     trialByTrial['ones'] = 1
     
-    #Create the offset value vector
-    trialByTrial['OptValueOff'] = trialByTrial['OptValue'] - trialByTrial['FixedValue']
-
     # Create the diff column
     # subtract the control option value from the value vector to make a vector for diff
     trialByTrial['OptValueDiff'] = abs(trialByTrial['OptValue'] - trialByTrial['FixedValue'])
@@ -100,28 +96,28 @@ for subjectID in subject_list:
 #       make the event files for each run seperately.  
 #       make the three column format eventfile [onsetTime, Durration, Magnitude]
             # to remove nans, test if a number equals itself
-        posValue3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.OptValueOff > 0) & (trialByTrial.Run  == run)][['ReactionTime','OptValueOff']]
-        negValue3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.OptValueOff < 0) & (trialByTrial.Run  == run)][['ReactionTime','OptValueOff']]
+        value3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.Run  == run)][['ReactionTime','OptValue']]
+        difficulty3Col = trialByTrial[(trialByTrial.OptValue  == trialByTrial.OptValue) & (trialByTrial.Run  == run)][['ReactionTime','OptValueDiff']]
         control3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         scaling3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         
 #       Name and open the destinations for event files
-        posValueDir  =   safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/PosValue.run00'+ str(run) +'.txt')
-        negValueDir  =   safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/NegValue.run00'+ str(run) +'.txt')
+        valueDir  =      safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Value.run00'+ str(run) +'.txt')
+        difficultyDir  = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Difficulty.run00'+ str(run) +'.txt')
         controlDir  =    safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Control.run00'+ str(run) +'.txt')
         scalingDir  =    safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Scaling.run00'+ str(run) +'.txt')
         BundlingDir =    safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Bundling.run00'+ str(run) +'.txt')
 
 #       write each 3-column event file as a tab dilimited csv
-        posValue3Col.to_csv(posValueDir, sep ='\t', header = False)
-        negValue3Col.to_csv(negValueDir, sep ='\t', header = False)
+        value3Col.to_csv(valueDir, sep ='\t', header = False)
+        difficulty3Col.to_csv(difficultyDir, sep ='\t', header = False)
         control3Col.to_csv(controlDir, sep ='\t', header = False)
         scaling3Col.to_csv(scalingDir, sep ='\t', header = False)
         bundling3Col.to_csv(BundlingDir, sep ='\t', header = False)
 #       Be Tidy! Close all of those open files! 
-        posValueDir.close()
-        negValueDir.close()
+        valueDir.close()
+        difficultyDir.close()
         controlDir.close()
         scalingDir.close()
         BundlingDir.close()
@@ -131,4 +127,3 @@ contrasts_dir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/con
 Contrasts.contrasts
 json.dump(Contrasts.contrasts, contrasts_dir)
 contrasts_dir.close()
-

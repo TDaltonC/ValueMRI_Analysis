@@ -14,6 +14,8 @@ import os
 import errno
 import pandas
 import numpy as np
+import json
+import Contrasts
 
 """
 =========
@@ -49,13 +51,13 @@ subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309'
 
 
 # System Setting (Local(MAC) or Remote(linux))
-#system = "Darwin" # Mac
+# system = "Darwin" # Mac 
 system = "Linux"
 if system == "Darwin":
     data_dir = "/Users/Dalton/Documents/Projects/BundledOptionsExp/Analysis/Data"
     fsl_dir = "/usr/local/fsl"
 elif system == "Linux":
-    data_dir = "/vol"
+    data_dir = "/data"
     fsl_dir = "/usr/share/fsl/5.0"
 
 """
@@ -119,3 +121,9 @@ for subjectID in subject_list:
         controlDir.close()
         scalingDir.close()
         BundlingDir.close()
+
+
+contrasts_dir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/contrasts.json')
+Contrasts.contrasts
+json.dump(Contrasts.contrasts, contrasts_dir)
+contrasts_dir.close()
