@@ -33,6 +33,16 @@ Configurations
 ==============
 """
 
+#This should be the only thing you have to set
+modelName = "Model_002_LB"
+
+from PipelineConfig import *
+# Bring in the path names from the configureation file
+data_dir, preProcDir, ev_dir, withinSubjectResults_dir, betweenSubjectResults_dir, workingdir,crashRecordsDir = configPaths(modelName)
+
+sys.path.append("../Models/" + modelName)
+from Contrasts import *
+
 # Get the FSL version code
 version = 0
 if fsl.Info.version() and \
@@ -353,9 +363,8 @@ if __name__ == '__main__':
     # modelfit.write_graph(graph2use='exec')
 
     # Run the paipline using 1 CPUs
-    # outgraph = masterpipeline.run()    
+    # outgraph = masterpipeline.run() 
     # Run the paipline using multi-Core
     outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': PC.CPU_Count})
-
 
 
