@@ -15,6 +15,8 @@ import errno
 import pandas
 import numpy as np
 import seaborn as sb
+import json
+import Contrasts
 
 """
 =========
@@ -45,17 +47,19 @@ modelName = "Model_002_MLERank"
 
 
 # subject directories
-subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314']
-
+subject_list = [
+                'SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314',
+                'SID3316', 'SID3318', 'SID3319', 'SID3320', 'SID3321', 'SID3325', 'SID3326', 'SID3328', 'SID3329', 'SID3330', 'SID3331', 'SID3332', 'SID3333', 'SID3334', 'SID3335', 'SID3336'
+                ]
 
 # System Setting (Local(MAC) or Remote(linux))
-system = "Darwin" # Mac
-#system = "Linux"
+# system = "Darwin" # Mac
+system = "Linux"
 if system == "Darwin":
     data_dir = "/Users/Dalton/Documents/Projects/BundledOptionsExp/Analysis/Data"
     fsl_dir = "/usr/local/fsl"
 elif system == "Linux":
-    data_dir = "/vol"
+    data_dir = "/data"
     fsl_dir = "/usr/share/fsl/5.0"
 
 """
@@ -72,7 +76,7 @@ for subjectID in subject_list:
     # Join the data frames
     #join trialbytrial and optionvalue on option number so that trailbytrial now has a column for value
     # Which value model should be used?
-    optionValues.sort('MLEValueLB', inplace = True, ascending = False)
+    optionValues.sort('MLEValueS', inplace = True, ascending = False)
     optionValues['MLE_Rank'] = np.linspace(1, -1, optionValues.shape[0])
     values1 = optionValues[['MLE_Rank']]
     # add the value for the screen option
@@ -90,7 +94,7 @@ for subjectID in subject_list:
     trialByTrial['OptValueDiff'] = abs(trialByTrial['OptValue'] - trialByTrial['FixedValue'])
 
 #    sb.regplot("MLE_Rank", "MLEValueLB", optionValues, label= subjectID, lowess = True)
-    sb.regplot("OptValue", "OptValueDiff", trialByTrial[trialByTrial["Run"]!=0], label= subjectID)
+    # sb.regplot("OptValue", "OptValueDiff", trialByTrial[trialByTrial["Run"]!=0], label= subjectID)
 
 #%% make the event files for each run
     print(subjectID)
@@ -110,6 +114,16 @@ for subjectID in subject_list:
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         bundlingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         bundlingDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
+        
+#       De-Mean the parametric pregressors
+        controlValue3Col['OptValue'] = controlValue3Col['OptValue'] - controlValue3Col['OptValue'].mean()
+        controlDifficulty3Col['OptValueDiff'] = controlDifficulty3Col['OptValueDiff'] - controlDifficulty3Col['OptValueDiff'].mean()
+
+        scalingValue3Col['OptValue'] = scalingValue3Col['OptValue'] - scalingValue3Col['OptValue'].mean()
+        scalingDifficulty3Col['OptValueDiff'] = scalingDifficulty3Col['OptValueDiff'] - scalingDifficulty3Col['OptValueDiff'].mean()
+        
+        bundlingValue3Col['OptValue'] = bundlingValue3Col['OptValue'] - bundlingValue3Col['OptValue'].mean()
+        bundlingDifficulty3Col['OptValueDiff'] = bundlingDifficulty3Col['OptValueDiff'] - bundlingDifficulty3Col['OptValueDiff'].mean()
         
 #       Name and open the destinations for event files
         controlDir            = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Control.run00'+ str(run) +'.txt')
@@ -148,3 +162,9 @@ for subjectID in subject_list:
         bundlingDir.close()
         bundlingValueDir.close()
         bundlingDifficultyDir.close()
+
+
+contrasts_dir = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/contrasts.json')
+Contrasts.contrasts
+json.dump(Contrasts.contrasts, contrasts_dir)
+contrasts_dir.close()

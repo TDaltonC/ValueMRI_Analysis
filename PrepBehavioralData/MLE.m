@@ -3,7 +3,7 @@ function [ y_output,y_max,p_output,bestValue,bestLL] = MLEmain()
 %this script will call on a log-likelihood fcn called 'MLEequation.m' that
 %will report parameters as variable called 'p_fit'
 
-subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314];
+subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314, 3316, 3318, 3319, 3320, 3321, 3325, 3326, 3328, 3329, 3330, 3331, 3332, 3333, 3334, 3335, 3336];
 % subjIDs = [3306];
 % dataDir = '/vol';
 dataDir = '~/Documents/Projects/BundledOptionsExp/Analysis/Data';
@@ -102,28 +102,28 @@ for subjCounter = 1:length(subjIDs)
     %% MLE Models
     
     % Lower bound, upper bound, sum restriction
-    limit_lower = -ones(1,optCount);
-    limit_upper = ones(1,optCount);
+    limit_lower = -ones(1,optCount)*1000;
+    limit_upper = ones(1,optCount)*1000;
     sumValuesMatrix = ones(1,optCount);
     sumValues = 0;
     
     p_initial(1:optCount,1) = linspace(1,-1,optCount); % initial values for all options
-    [p_fitLBUBS,y_valLBUBS] = fmincon(@(p) MLEequation(p, x), p_initial,[],[],sumValuesMatrix,sumValues,limit_lower,limit_upper,[],options);
-    %     p_outputLBUBS = join(p_fitLBUBS,sortedOptionsRenamed(:,1),'key','Key1','Type','outer',...
+    [p_fitS,y_valS] = fmincon(@(p) MLEequation(p, x), p_initial,[],[],sumValuesMatrix,sumValues,limit_lower,limit_upper,[],options);
+    %     p_outputS = join(p_fitS,sortedOptionsRenamed(:,1),'key','Key1','Type','outer',...
     %    'MergeKeys',true);
-    p_fitLBUBS = cat(2,p_fitLBUBS,sortedOptionsRenamed(:,1)); % put option numbers in column to right of their values
-    for i = 1:length(p_fitLBUBS)
-        p_outputLBUBS(p_fitLBUBS(i,2),1) = p_fitLBUBS(i,1);
+    p_fitS = cat(2,p_fitS,sortedOptionsRenamed(:,1)); % put option numbers in column to right of their values
+    for i = 1:length(p_fitS)
+        p_outputS(p_fitS(i,2),1) = p_fitS(i,1);
     end
-    p_outputLBUBS = cat(1,p_outputLBUBS,zeros((allOptCount-length(p_outputLBUBS)),1));
+    p_outputS = cat(1,p_outputS,zeros((allOptCount-length(p_outputS)),1));
     for j = 1:allOptCount
-        if p_outputLBUBS(j,1)==0
-            p_outputLBUBS(j,1) = str2num('NaN');
+        if p_outputS(j,1)==0
+            p_outputS(j,1) = str2num('NaN');
         else
-            p_outputLBUBS(j,1) = p_outputLBUBS(j,1);
+            p_outputS(j,1) = p_outputS(j,1);
         end
     end
-    y_outputLBUBS = y_valLBUBS;
+    y_outputS = y_valS;
     clear p
     
     % LB, UB, no sum restriction
@@ -208,7 +208,7 @@ for subjCounter = 1:length(subjIDs)
     %
     %     save('resultsMLE.mat','resultsMLE');
     
-    optionsDF.MLEValueLBUBS = p_outputLBUBS;
+    optionsDF.MLEValueS = p_outputS;
     optionsDF.MLEValueLBUB = p_outputLBUB;
     optionsDF.MLEValueLB = p_outputLB;
     optionsDF.MLEValueUB = p_outputUB;  

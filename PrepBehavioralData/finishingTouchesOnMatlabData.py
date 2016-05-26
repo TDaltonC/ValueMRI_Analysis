@@ -13,8 +13,9 @@ So this takes in "dataFromMatLAB.csv" and rank.csv and the outputs "TrialbyTrial
 
 import pandas as pd
 
-subjects = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314]
-#subjects = [3313]
+subjects = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314,
+            3316, 3318, 3319, 3320, 3321, 3325, 3326, 3328, 3329, 3330, 3331, 3332, 3333, 3334, 3335, 3336]
+#subjects = [3304, 3306]
 
 def consistency_check(row):
     if row.Opt1Code > row.Opt2Code:
@@ -39,7 +40,7 @@ def consistency_check(row):
 def finishingTouches(subjID):
     trialByTrial = pd.read_csv("../../Data/RawData/SID" + str(subjID) + "/MatLabOutput/dataFromMatLAB.csv")
     optionRanks  = pd.read_csv("../../Data/RawData/SID" + str(subjID) + "/dataFrames/rank" + str(subjID) + ".csv")
-    rankAnchor  = pd.read_csv("../../Data/RawData/SID" + str(subjID) + "/dataFrames/rankAnchor.csv")
+#    rankAnchor  = pd.read_csv("../../Data/RawData/SID" + str(subjID) + "/dataFrames/rankAnchor.csv")
     
     trialByTrial.drop(['Opt1Code', 'Opt2Code'], 1, inplace = True)
     #optionRanks.drop('type', 1, inplace = True)

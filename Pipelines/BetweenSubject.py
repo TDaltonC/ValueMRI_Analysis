@@ -18,8 +18,8 @@ import nipype.interfaces.io as nio           # Data i/o
 import nipype.interfaces.fsl as fsl          # fsl
 import nipype.pipeline.engine as pe          # pypeline engine
 
-from nipype import config
-config.enable_debug_mode()
+# from nipype import config
+# config.enable_debug_mode()
 
 """
 ==============
@@ -28,7 +28,7 @@ Configurations
 """
 
 #This should be the only thing you have to set
-modelName = "Model_002_LB_DiffOnly"
+modelName = "Model_001v_MLERank_hand_localizer"
 
 from PipelineConfig import *
 # Bring in the path names from the configureation file
@@ -57,7 +57,25 @@ def sort_copes(files):
 def num_copes(files):
     return len(files)
 
+def within_subj_Dir(model_name):
+    withinSubjectResults_dir = '/data/Models/' + model_name + "/FFX_Results/"
+    return withinSubjectResults_dir
 
+def between_subj_Dir(model_name):
+    betweenSubjectResults_dir = '/data/Models/' + model_name + "/MFX_Results/"
+    return betweenSubjectResults_dir
+
+def contrast_decode(cont_file):
+  import json
+  cont_string = open(cont_file)
+  cont = json.load(cont_string)
+  return cont
+
+def contrast_counter(cont_file):
+  import json
+  cont_string = open(cont_file)
+  cont = json.load(cont_string)
+  return cont
 
 '''
 ==============
@@ -79,8 +97,8 @@ l2source = pe.Node(nio.DataGrabber(infields=['con'],
 
 l2source.inputs.base_directory = withinSubjectResults_dir
 l2source.inputs.template = '*'
-l2source.inputs.field_template= dict(copes=     '%s/copes/%s/contrast%d/cope1.nii.gz',
-                                     varcopes=  '%s/varcopes/%s/contrast%d/varcope1.nii.gz')
+l2source.inputs.field_template= dict(copes=     '%s/copes/*%s/contrast%d/cope1.nii.gz',
+                                     varcopes=  '%s/varcopes/*%s/contrast%d/varcope1.nii.gz')
 l2source.inputs.template_args = dict(copes=     [[subject_list,subject_list,'con']],
                                      varcopes=  [[subject_list,subject_list,'con']]
                                      )
