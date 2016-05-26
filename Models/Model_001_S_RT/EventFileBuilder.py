@@ -46,8 +46,11 @@ modelName = "Model_001_S_RT"
 
 
 # subject directories
-subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314']
-# subject_list = ['SID3308']
+subject_list = [
+                'SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314',
+                'SID3316', 'SID3318', 'SID3319', 'SID3320', 'SID3321', 'SID3325', 'SID3326', 'SID3328', 'SID3329', 'SID3330', 'SID3331', 'SID3332', 'SID3333', 'SID3334', 'SID3335', 'SID3336'
+                ]
+
 
 
 # System Setting (Local(MAC) or Remote(linux))
@@ -102,6 +105,11 @@ for subjectID in subject_list:
         control3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         scaling3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
+        
+#       De-Mean the parametric pregressors
+        value3Col['OptValue'] = value3Col['OptValue'] - value3Col['OptValue'].mean()
+        difficulty3Col['OptValueDiff'] = difficulty3Col['OptValueDiff'] - difficulty3Col['OptValueDiff'].mean()
+        reactionTime3Col['ReactionTime'] = reactionTime3Col['ReactionTime'] - reactionTime3Col['ReactionTime'].mean()
         
 #       Name and open the destinations for event files
         valueDir       = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Value.run00'+ str(run) +'.txt')

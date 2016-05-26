@@ -103,17 +103,30 @@ for subjectID in subject_list:
         controlValue3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         controlDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
         controlReactionTime3Col = trialByTrial[(trialByTrial.Opt1Type == 1) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','ReactionTime']]
-        
+
         scaling3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         scalingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         scalingDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
         scalingReactionTime3Col = trialByTrial[(trialByTrial.Opt1Type == 2) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','ReactionTime']]
-        
+
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         bundlingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         bundlingDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
         bundlingReactionTime3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','ReactionTime']]
         
+#       De-Mean the parametric pregressors
+        controlValue3Col['OptValue'] = controlValue3Col['OptValue'] - controlValue3Col['OptValue'].mean()
+        controlDifficulty3Col['OptValueDiff'] = controlDifficulty3Col['OptValueDiff'] - controlDifficulty3Col['OptValueDiff'].mean()
+        controlReactionTime3Col['ReactionTime'] = controlReactionTime3Col['ReactionTime'] - controlReactionTime3Col['ReactionTime'].mean()
+
+        scalingValue3Col['OptValue'] = scalingValue3Col['OptValue'] - scalingValue3Col['OptValue'].mean()
+        scalingDifficulty3Col['OptValueDiff'] = scalingDifficulty3Col['OptValueDiff'] - scalingDifficulty3Col['OptValueDiff'].mean()
+        scalingReactionTime3Col['ReactionTime'] = scalingReactionTime3Col['ReactionTime'] - scalingReactionTime3Col['ReactionTime'].mean()
+        
+        bundlingValue3Col['OptValue'] = bundlingValue3Col['OptValue'] - bundlingValue3Col['OptValue'].mean()
+        bundlingDifficulty3Col['OptValueDiff'] = bundlingDifficulty3Col['OptValueDiff'] - bundlingDifficulty3Col['OptValueDiff'].mean()
+        bundlingReactionTime3Col['ReactionTime'] = bundlingReactionTime3Col['ReactionTime'] - bundlingReactionTime3Col['ReactionTime'].mean()
+
 #       Name and open the destinations for event files
         controlDir            = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Control.run00'+ str(run) +'.txt')
         controlValueDir       = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/ControlValue.run00'+ str(run) +'.txt')

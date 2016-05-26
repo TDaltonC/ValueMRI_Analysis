@@ -47,8 +47,10 @@ modelName = "Model_002_S"
 
 
 # subject directories
-subject_list = ['SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314']
-
+subject_list = [
+                'SID3301', 'SID3303', 'SID3304', 'SID3306', 'SID3308', 'SID3309', 'SID3310', 'SID3312', 'SID3313', 'SID3314',
+                'SID3316', 'SID3318', 'SID3319', 'SID3320', 'SID3321', 'SID3325', 'SID3326', 'SID3328', 'SID3329', 'SID3330', 'SID3331', 'SID3332', 'SID3333', 'SID3334', 'SID3335', 'SID3336'
+                ]
 
 # System Setting (Local(MAC) or Remote(linux))
 # system = "Darwin" # Mac
@@ -90,7 +92,7 @@ for subjectID in subject_list:
     trialByTrial['OptValueDiff'] = abs(trialByTrial['OptValue'] - trialByTrial['FixedValue'])
 
 #    sb.regplot("OptValue", "OptValueDiff", trialByTrial[trialByTrial["Run"]!=0], label= subjectID)
-    trialByTrial[trialByTrial["Run"]!=0].plot(kind ="scatter", x = "OptValue", y = "OptValueDiff")
+    # trialByTrial[trialByTrial["Run"]!=0].plot(kind ="scatter", x = "OptValue", y = "OptValueDiff")
 
 #%% make the event files for each run
     print(subjectID)
@@ -110,6 +112,16 @@ for subjectID in subject_list:
         bundling3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run)][['ReactionTime','ones']]
         bundlingValue3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValue']]
         bundlingDifficulty3Col = trialByTrial[(trialByTrial.Opt1Type == 3) & (trialByTrial.Run  == run) & (trialByTrial.OptValue  == trialByTrial.OptValue)][['ReactionTime','OptValueDiff']]
+        
+#       De-Mean the parametric pregressors
+        controlValue3Col['OptValue'] = controlValue3Col['OptValue'] - controlValue3Col['OptValue'].mean()
+        controlDifficulty3Col['OptValueDiff'] = controlDifficulty3Col['OptValueDiff'] - controlDifficulty3Col['OptValueDiff'].mean()
+
+        scalingValue3Col['OptValue'] = scalingValue3Col['OptValue'] - scalingValue3Col['OptValue'].mean()
+        scalingDifficulty3Col['OptValueDiff'] = scalingDifficulty3Col['OptValueDiff'] - scalingDifficulty3Col['OptValueDiff'].mean()
+        
+        bundlingValue3Col['OptValue'] = bundlingValue3Col['OptValue'] - bundlingValue3Col['OptValue'].mean()
+        bundlingDifficulty3Col['OptValueDiff'] = bundlingDifficulty3Col['OptValueDiff'] - bundlingDifficulty3Col['OptValueDiff'].mean()
         
 #       Name and open the destinations for event files
         controlDir            = safe_open_w(data_dir + '/Models/' + modelName + '/EventFiles/' + subjectID + '/RUN' + str(run) + '/Control.run00'+ str(run) +'.txt')

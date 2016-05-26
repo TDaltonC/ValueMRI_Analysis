@@ -11,7 +11,8 @@ concatinate the trialbyTrial and option value data on to seperate csv's, which s
 '''
 import pandas as pd
 
-subjects = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314]
+subjects = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314,
+            3316, 3318, 3319, 3320, 3321, 3325, 3326, 3328, 3329, 3330, 3331, 3332, 3333, 3334, 3335, 3336]
 
 
 def poolDataFrames(subjID, loopCount, dataDir = "../../Data/"):

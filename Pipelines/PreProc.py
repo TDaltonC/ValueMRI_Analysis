@@ -22,8 +22,8 @@ import nipype.algorithms.rapidart as ra      # artifact detection
 from nipype import LooseVersion              # for simplifying versions
 
 # These two lines enable debug mode
-# from nipype import config
-# config.enable_debug_mode()
+from nipype import config
+config.enable_debug_mode()
 
 """
 ==============
@@ -417,4 +417,4 @@ if __name__ == '__main__':
     # Run the paipline using 1 CPUs
     # outgraph = masterpipeline.run()    
 #     Run the paipline using all CPUs
-    # outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs':((CPU_Count*2)-1)})
+    # outgraph = masterpipeline.run(plugin='MultiProc', plugin_args={'n_procs': CPU_Count})

@@ -3,7 +3,7 @@ function [ y_output,y_max,p_output,bestValue,bestLL] = MLEmain()
 %this script will call on a log-likelihood fcn called 'MLEequation.m' that
 %will report parameters as variable called 'p_fit'
 
-subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314];
+subjIDs = [3301, 3303, 3304, 3306, 3308, 3309, 3310, 3312, 3313, 3314, 3316, 3318, 3319, 3320, 3321, 3325, 3326, 3328, 3329, 3330, 3331, 3332, 3333, 3334, 3335, 3336];
 % subjIDs = [3306];
 % dataDir = '/vol';
 dataDir = '~/Documents/Projects/BundledOptionsExp/Analysis/Data';
