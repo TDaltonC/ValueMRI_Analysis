@@ -27,7 +27,7 @@ Configurations
 ==============
 """
 #This should be the only thing you have to set
-modelName = "Model_001v_MLERank_hand_localizer"
+modelName = "Model_002_MLERank_Chosen"
 
 from PipelineConfig import *
 # Bring in the path names from the configureation file

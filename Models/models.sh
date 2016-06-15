@@ -7,12 +7,14 @@
 # python3 Model_001_S_RT/EventFileBuilder.py 
 
 # python3 Model_001v_MLERank/EventFileBuilder.py 
+python3 Model_001v_MLERank_Chosen/EventFileBuilder.py 
 # python3 Model_001v_Rank/EventFileBuilder.py 
 # python3 Model_001v_S/EventFileBuilder.py 
 # python3 Model_001v_S_Chosen/EventFileBuilder.py
 # python3 Model_001v_MLERank_Chosen/EventFileBuilder.py  
 
 # python3 Model_002_MLERank/EventFileBuilder.py 
+python3 Model_002_MLERank_Chosen/EventFileBuilder.py 
 # python3 Model_002_MLERank_last500ms/EventFileBuilder.py 
 # python3 Model_002_MLERank_Offset/EventFileBuilder.py 
 # python3 Model_002_MLERank_Offset_Split/EventFileBuilder.py 
@@ -30,7 +32,7 @@
 
 # python3 Model_002v_MLERank/EventFileBuilder.py
 # python3 Model_002v_Rank/EventFileBuilder.py
-# python3 Model_002v_MLERank_Chosen/EventFileBuilder.py
+python3 Model_002v_MLERank_Chosen/EventFileBuilder.py
 # python3 Model_002v_S/EventFileBuilder.py
 # python3 Model_002v_S_Chosen/EventFileBuilder.py
 
@@ -49,10 +51,12 @@
 # python3 Model_009_MLERank/EventFileBuilder.py 
 # python3 Model_009_S/EventFileBuilder.py 
 # python3 Model_009v_MLERank/EventFileBuilder.py 
-# python3 Model_009v_S/EventFileBuilder.py 
+# python3 Model_009v_S/EventFileBuilder.py
 
-python3 Model_hand_localizer/EventFileBuilder.py 
-python3 Model_001v_MLERank_hand_localizer/EventFileBuilder.py 
+python3 Model_010/EventFileBuilder.py 
+
+# python3 Model_hand_localizer/EventFileBuilder.py 
+# python3 Model_001v_MLERank_hand_localizer/EventFileBuilder.py 
 
 # python3 PPI_001_mOFC_Arana/task_regressor_builder.py
 # python PPI_001_mOFC_Arana/physio_and_interact.py

@@ -27,6 +27,8 @@ Model_009 : This is like model 1 in that it only has one value and diff regresso
 
 Model_009_v : like modle 9 but with no diff regressor (ie the only parametric regressor is Value)
 
+Model_010 : Onyl contains task regressors. No Vale or Difference regressors. 
+
 PPI_001 : Connectivity models. There are three task regressors one for each subtask.
 
 PPI_002 : Connectivity models. There are 5 task regressors. (1) control; (2) scaling options that only require a partial valuation; (3) scaling options that require a complete valuation; (4) Bundling options that only require a partial valuation; (5) Bundling options that requre a full valuation. This is based off of the same definitions as model_004
